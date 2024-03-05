@@ -9,12 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
     "@react-three/drei": "^9.92.7",
     "@react-three/fiber": "^8.15.10",
+    "@react-three/uikit": "^0.1.10",
     "@react-three/xr": "^5.7.1",
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "bcrypt-ts": "^5.0.0",
+    "drizzle-orm": "^0.29.2",
     "form-data": "^4.0.0",
     "formidable": "^3.5.1",
+    "geist": "^1.2.0",
     "next": "^14.0.4",
+    "next-auth": "5.0.0-beta.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "three": "^0.155.0"
@@ -28,6 +37,7 @@
     "@types/webxr": "^0.5.8",
     "eslint": "^8",
     "eslint-config-next": "^14.0.4",
-    "typescript": "^5"
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
   }
 }
