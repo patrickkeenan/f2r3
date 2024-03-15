@@ -77,7 +77,6 @@ export default function Login() {
             >
               Login with token
             </button>
-            {/* figmaToken = "figd_HvBc1Tpi6ogHYr2StTJboKoJsUxO2YWV0Wl0xGfD"; */}
           </div>
         </div>
       </section>
