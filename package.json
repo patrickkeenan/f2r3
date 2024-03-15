@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mdx-js/loader": "^3.0.1",
+    "@mdx-js/react": "^3.0.1",
     "@monaco-editor/react": "^4.6.0",
+    "@next/mdx": "^14.1.3",
     "@react-three/drei": "^9.92.7",
     "@react-three/fiber": "^8.15.10",
-    "@react-three/uikit": "^0.1.10",
+    "@react-three/uikit": "^0.1.13",
     "@react-three/xr": "^5.7.1",
+    "@types/mdx": "^2.0.11",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
@@ -26,7 +30,7 @@
     "next-auth": "5.0.0-beta.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.155.0"
+    "three": "0.160.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.4",

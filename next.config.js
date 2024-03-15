@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
+const withMDX = require("@next/mdx")();
+
 const nextConfig = {
+  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   // experimental: {
   //   https: true,
   // },
@@ -33,4 +36,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withMDX(nextConfig);

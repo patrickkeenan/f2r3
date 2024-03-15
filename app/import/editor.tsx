@@ -6,18 +6,23 @@ import Editor, {
   MonacoDiffEditor,
   useMonaco,
 } from "@monaco-editor/react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import * as babel from "prettier/plugins/babel";
 import * as estree from "prettier/plugins/estree";
 import * as typescript from "prettier/plugins/typescript";
 import prettier from "prettier/standalone";
+import Preview from "./preview";
 
 export default function EditorPage({ figmaToken }) {
   const router = useRouter();
   console.log(figmaToken);
 
-  const [layoutData, setLayoutData] = useState("");
-  const [frameLink, setFrameLink] = useState("");
+  const [layoutDataString, setLayoutDataString] = useState("");
+  const [reactCodeString, setReactCodeString] = useState("");
+  const [layoutData, setLayoutData] = useState(null);
+  const [frameLink, setFrameLink] = useState(
+    "https://www.figma.com/file/qGDiNCmTVCTuBdAoMyMXc4/UIKit-Figma-logo?type=design&node-id=10-299&mode=design&t=s2B17KvQ1eftMPBc-11"
+  );
   function parseFigmaUrl(url: string): { nodeId: string; fileId: string } {
     const urlObj = new URL(url);
     const searchParams = new URLSearchParams(urlObj.search);
@@ -27,6 +32,61 @@ export default function EditorPage({ figmaToken }) {
 
     return { nodeId: nodeId ?? "", fileId: fileId ?? "" };
   }
+
+  const files = {
+    "layout.json": {
+      name: "layout.json",
+      language: "typescript",
+      value: layoutDataString,
+    },
+    "layout.tsx": {
+      name: "layout.tsx",
+      language: "typescript",
+      value: reactCodeString,
+    },
+  };
+  const editorRef = useRef(null);
+  const [fileName, setFileName] = useState("layout.json");
+  const file = files[fileName];
+
+  const monaco = useMonaco();
+  useEffect(() => {
+    // do conditional chaining
+    monaco?.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+    // or make sure that it exists by other ways
+    try {
+      monaco?.languages.typescript.typescriptDefaults.setCompilerOptions({
+        jsx: monaco.languages.typescript.JsxEmit.Preserve,
+        target: monaco.languages.typescript.ScriptTarget.ES2020,
+        esModuleInterop: true,
+        // allowNonTsExtensions: true,
+        // moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+        // module: monaco.languages.typescript.ModuleKind.CommonJS,
+        // noEmit: true,
+        // typeRoots: ["node_modules/@types"],
+        noUnusedLocals: false,
+        // noUnusedParameters: false,
+        automaticLayout: true,
+        formatOnPaste: true,
+        formatOnType: true,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+    // Remove complaints about libraries
+    monaco?.languages.typescript.typescriptDefaults.addExtraLib(
+      `declare module '*';`,
+      "filename.ts"
+    );
+    if (monaco) {
+      console.log("here is the monaco instance:", monaco);
+    }
+  }, [monaco]);
+
+  function handleEditorDidMount(editor, monaco) {
+    editorRef.current = editor;
+  }
+
   return (
     <>
       <div
@@ -73,30 +133,42 @@ export default function EditorPage({ figmaToken }) {
           onClick={() => {
             if (figmaToken) {
               const { fileId, nodeId } = parseFigmaUrl(frameLink);
-              console.log(
-                "getting",
-                `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`,
-                "X-FIGMA-TOKEN" + figmaToken
-              );
+              const fileUrl = `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`;
+              // const fileUrl = `https://api.figma.com/v1/files/${fileId}`;
+              console.log("getting", fileUrl, "X-FIGMA-TOKEN" + figmaToken);
 
-              fetch(
-                `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`,
-                {
-                  headers: {
-                    "X-FIGMA-TOKEN": figmaToken,
-                  },
-                }
-              )
+              fetch(fileUrl, {
+                headers: {
+                  // "X-FIGMA-TOKEN": figmaToken,
+                  Authorization: `Bearer ${figmaToken}`,
+                },
+              })
                 .then((response) => response.json())
                 .then(async (data) => {
-                  console.log("got data", data);
-                  const dataString =
-                    "const layoutData =" + JSON.stringify(data);
-                  const formattedString = await prettier.format(dataString, {
-                    parser: "typescript",
-                    plugins: [babel, typescript, estree],
-                  });
-                  setLayoutData(formattedString);
+                  console.log("got file data", data);
+                  const imagesUrl = `https://api.figma.com/v1/files/${fileId}/images`;
+                  fetch(imagesUrl, {
+                    headers: {
+                      // "X-FIGMA-TOKEN": figmaToken,
+                      Authorization: `Bearer ${figmaToken}`,
+                    },
+                  })
+                    .then((response) => response.json())
+                    .then(async (imageData) => {
+                      data.images = imageData.meta.images;
+                      const dataString =
+                        "export const staticLayoutData = " +
+                        JSON.stringify(data);
+                      const formattedString = await prettier.format(
+                        dataString,
+                        {
+                          parser: "typescript",
+                          plugins: [babel, typescript, estree],
+                        }
+                      );
+                      setLayoutData(data);
+                      setLayoutDataString(formattedString);
+                    });
                 });
             }
           }}
@@ -132,22 +204,43 @@ export default function EditorPage({ figmaToken }) {
             position: "fixed",
           }}
         >
+          <div style={{ height: "50%", width: "100%" }}>
+            <Preview
+              layoutData={layoutData}
+              handleStringOutput={(stringOutput) =>
+                setReactCodeString(stringOutput)
+              }
+            />
+          </div>
+          <button
+            disabled={fileName === "layout.json"}
+            onClick={() => setFileName("layout.json")}
+          >
+            layout.json
+          </button>
+          <button
+            disabled={fileName === "layout.tsx"}
+            onClick={() => setFileName("layout.tsx")}
+          >
+            layout.tsx
+          </button>
           <Editor
-            height="100%"
+            path={file.name}
+            defaultLanguage={file.language}
+            defaultValue={file.value}
+            height="50%"
             width="100%"
             theme="vs-dark"
             saveViewState={true}
-            path={"frame"}
-            defaultLanguage={"typescript"}
-            defaultValue={layoutData}
-            //   onMount={handleEditorDidMount}
+            onMount={handleEditorDidMount}
             //   onChange={handleEditorChange}
-            value={layoutData}
+            value={file.value}
             options={{
               tabSize: 2,
               insertSpaces: true,
               autoIndent: "advanced",
               wordWrap: "on",
+              folding: true,
             }}
           />
         </div>
