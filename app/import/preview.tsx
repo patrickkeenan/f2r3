@@ -19,6 +19,8 @@ import {
 import { Button } from "@/app/components/button";
 import { useFigmaContext } from "../auth/figmaTokenContext";
 import UI from "./ui";
+import { noEvents, XWebPointers } from "@coconut-xr/xinteraction/react";
+
 // import { staticLayoutData } from "./layoutData";
 
 export default function Preview({ ...props }) {
@@ -144,9 +146,11 @@ export default function Preview({ ...props }) {
   return (
     <>
       <Canvas
+        events={noEvents}
         style={{ height: "100%", touchAction: "none" }}
         gl={{ localClippingEnabled: true }}
       >
+        <XWebPointers />
         {/* {!hasScene && (
           <>
             <mesh>
