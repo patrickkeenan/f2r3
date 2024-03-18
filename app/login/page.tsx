@@ -49,7 +49,7 @@ export default function Login() {
               type="text"
               placeholder="personal token"
               value={personalToken}
-              onChange={(event) => setPersonalToken(event.target.value)}
+              onChange={(event: any) => setPersonalToken(event.target.value)}
               style={{
                 padding: "10px",
                 borderRadius: "5px",

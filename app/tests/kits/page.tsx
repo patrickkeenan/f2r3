@@ -9,17 +9,21 @@ import {
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Root, Fullscreen, Container, Text, Content } from "@react-three/uikit";
-import Layout from "./export";
+import Scene from "./scene";
+import { Button } from "@/app/components/button";
 
 export default function Preview() {
+  const [fullscreen, setFullscreen] = useState(false);
   return (
-    <Canvas
-      style={{ height: "100%", touchAction: "none" }}
-      gl={{ localClippingEnabled: true }}
-    >
-      <Layout />
-      <Environment background blur={1} preset="city" />
-      <OrbitControls />
-    </Canvas>
+    <>
+      <Canvas
+        style={{ height: "100%", touchAction: "none" }}
+        gl={{ localClippingEnabled: true }}
+      >
+        <Scene />
+        <Environment background blur={1} preset="city" />
+        <OrbitControls />
+      </Canvas>
+    </>
   );
 }

@@ -1,10 +1,8 @@
 import { cookies } from "next/headers";
-// import { MyClientComponent } from './MyClientComponent'
-import EditorPage from "./editor";
-
+import ImporterPage from "./importer";
 export default function Page() {
   const cookieStore = cookies();
-  const figmaToken = cookieStore.get("figmatoken");
-  console.log("cookie", figmaToken);
-  return <EditorPage figmaToken={figmaToken?.value} />;
+  const token = cookieStore.get("figmatoken");
+  console.log("cookie", token);
+  return <ImporterPage token={token?.value} />;
 }
