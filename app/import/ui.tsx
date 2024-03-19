@@ -15,6 +15,7 @@ import {
   Fullscreen as FullscreenIcon,
   X as XIcon,
   Code as CodeIcon,
+  RotateCw as RotateCwIcon,
 } from "@react-three/uikit-lucide";
 import { Tabs, TabsButton } from "@/app/components/tabs";
 import { Button } from "@/app/components/button";
@@ -193,7 +194,7 @@ export default function UI({
                       selected={isFullscreen ? true : false}
                       onClick={() => setIsFullscreen(true)}
                     >
-                      <PIPIcon height={16} width={16} />
+                      <FullscreenIcon height={16} width={16} />
                     </Button>
                     <Button
                       variant="icon"
@@ -211,6 +212,15 @@ export default function UI({
                       borderLeft={1}
                       marginX={8}
                     />
+                    <Button
+                      variant="icon"
+                      size="sm"
+                      onClick={() => {
+                        window.location.reload();
+                      }}
+                    >
+                      <RotateCwIcon height={16} width={16} />
+                    </Button>
                     <Button
                       variant="icon"
                       size="sm"

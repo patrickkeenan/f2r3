@@ -224,7 +224,6 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
   useEffect(() => {
     const layoutText = figmaLayerText({
       node: rootNode,
-      key: "rootNode",
       layoutData,
       width: "100%",
       height: "100%",
@@ -252,15 +251,10 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
     // window._sceneString = sceneString;
   }, [layoutData]);
 
-  // TODO: Fix UI, its not responsive after running the import, probably the UI is mucked up some how
-  if (!layoutData || !rootNode) {
-    return <></>;
-  }
   if (isFullscreen) {
     return (
       // <Fullscreen>
       <FigmaLayer
-        key={"rootNode"}
         node={rootNode}
         layoutData={layoutData}
         width={"100%"}
@@ -277,7 +271,38 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
           sizeX={rootNode.absoluteBoundingBox.width / 100}
           sizeY={rootNode.absoluteBoundingBox.height / 100}
         >
-          <FigmaLayer node={rootNode} layoutData={layoutData} key="rootNode" />
+          {/* <Container
+            {...{
+              type: "FRAME",
+              borderRadius: 28,
+              x: 222,
+              y: -974,
+              width: 439,
+              height: 363,
+              positionType: "absolute",
+              positionTop: 0,
+              positionLeft: 0,
+            }}
+          >
+            {
+              <Container
+                {...{
+                  backgroundOpacity: 1,
+                  borderRadius: 28,
+                  backgroundColor: "rgba(255, 0, 0, 1)",
+                }}
+              >
+                {
+                  <Container
+                    key={"Layout Test"}
+                    {...{ type: "FRAME" }}
+                    {...{ width: "100%", height: "100%", overflow: "scroll" }}
+                  ></Container>
+                }
+              </Container>
+            }
+          </Container> */}
+          <FigmaLayer node={rootNode} layoutData={layoutData} />
         </Root>
         <Environment background blur={1} preset="city" />
       </>
@@ -292,13 +317,11 @@ function FigmaLayer({
   ...props
 }) {
   const propsFromNode = figProps(node, parentNode);
+  const innerPropsFromNode = figInnerProps(node, parentNode);
 
   // console.log("propsFromNode", propsFromNode);
 
-  const [width, setWidth] = useState(propsFromNode.width);
-  const [height, setHeight] = useState(propsFromNode.height);
-
-  let component;
+  let innerComponent;
 
   // Could have children or fills
   if (
@@ -322,66 +345,56 @@ function FigmaLayer({
       });
     }
 
-    // REMOVED: Because padding pushes these fill layers in
-    // TODO: Figure out how to do multiple fills, just use 1 for now
-    // Fill layers if ther's' fills
-    if (node.fills) {
-      //   // For any gradient or image, we need to flatten them, and just have 1 background
-
-      const nodeFills = node.fills.map((fill, i) => {
-        if (fill.type !== "SOLID" && !node.children) {
-          // console.log("got non solid fill");
-
-          return (
-            // <Container
-            //   width={"100%"}
-            //   height={"100%"}
-            //   positionType="absolute"
-            //   zIndexOffset={-1}
-            //   {...figFillProps(fill, node)}
-            // >
-            <Image
-              key={node.id + "_fill_" + i}
-              width={"100%"}
-              height={"100%"}
-              {...figImageProps(fill, node, layoutData.flatNodeImages[node.id])}
-            ></Image>
-            // </Container>
-          );
-        }
-        // else {
-        //   return (
-        //     <Container
-        //       width={"100%"}
-        //       height={"100%"}
-        //       positionType="absolute"
-        //       zIndexOffset={-1}
-        //       {...figFillProps(fill, node)}
-        //     ></Container>
-        //   );
-        // }
-      });
-      nodeChildren = nodeChildren.concat(nodeFills);
-    }
-
-    component = (
-      <Container {...propsFromNode} {...props} key={node.id + "-container"}>
+    innerComponent = (
+      <Container {...innerPropsFromNode} key={node.id + "-container"}>
         {nodeChildren}
       </Container>
     );
+    // Fill layers if ther's' fills
+    if (node.fills) {
+      //   // For any gradient or image, we need to flatten them, and just have 1 background
+      node.fills.forEach((fill, i) => {
+        if (fill.type == "IMAGE") {
+          innerComponent = (
+            <Image
+              {...figFillProps(fill, node, i)}
+              {...figImageProps(fill, node, layoutData.flatNodeImages[node.id])}
+            >
+              {innerComponent}
+            </Image>
+          );
+        } else {
+          innerComponent = (
+            <Container {...figFillProps(fill, node, i)}>
+              {innerComponent}
+            </Container>
+          );
+        }
+      });
+    }
   } else if (node.type == "TEXT") {
-    component = (
-      <Container key={node.id + "-container"} {...propsFromNode}>
+    innerComponent = (
+      <Container key={node.id + "-container"} {...innerPropsFromNode}>
         <Text key={node.id + "-text"} {...figTextProps(node)}>
           {node.characters}
         </Text>
       </Container>
     );
   }
+
+  // REMOVED: Because padding pushes these fill layers in
+  // TODO: Figure out how to do multiple fills, just use 1 for now
+
+  // Need layout props on outer container, then padding on the inner container
+
   // console.log("figprops", node.name, propsFromNode);
   // {node.type == "TEXT" && <Text>{node.characters}</Text>}
 
-  return component;
+  return (
+    <Container {...propsFromNode} {...props}>
+      {innerComponent}
+    </Container>
+  );
 }
 
 // function FigmaFill({ fill, node, ...props }) {
@@ -432,8 +445,9 @@ function figmaLayerText({
   ...props
 }) {
   const propsFromNode = figProps(node, parentNode);
+  const innerPropsFromNode = figInnerProps(node, parentNode);
 
-  let component;
+  let innerComponent;
 
   // Could have children or fills
   if (
@@ -454,38 +468,34 @@ function figmaLayerText({
       });
     }
 
-    // Fill layers if ther's' fills
-    if (node.fills) {
-      const nodeFills = node.fills.map((fill, i) => {
-        if (fill.type !== "SOLID" && !node.children) {
-          // console.log("string fill", layoutData.flatNodeImages[node.id]);
-          return `<Image
-            {...${JSON.stringify(figImageProps(fill, node, layoutData.flatNodeImages[node.id]))}}
-            ></Image>`;
-        }
-        // else {
-        //   return `<Container
-        //   width={"100%"}
-        //   height={"100%"}
-        //   positionType="absolute"
-        //   zIndexOffset={-1}
-        //   {...${JSON.stringify(figFillProps(fill, node))}}
-        //   ></Container>`;
-        // }
-      });
-      nodeChildren = nodeChildren.concat(nodeFills);
-    }
-
-    component = `
+    innerComponent = `
       <Container
         key={"${node.name}"}
-        {...${JSON.stringify(propsFromNode)}} {...${JSON.stringify(props)}}
+        {...${JSON.stringify({ ...innerPropsFromNode })}} {...${JSON.stringify(props)}}
       >${nodeChildren.join("\n")}</Container>`;
+
+    // Fill layers if ther's' fills
+    if (node.fills) {
+      node.fills.forEach((fill, i) => {
+        // const nodeFills = node.fills.map((fill, i) => {
+        if (fill.type == "IMAGE") {
+          innerComponent = `<Image {...${JSON.stringify(figFillProps(fill, node, i))}}
+            {...${JSON.stringify(figImageProps(fill, node, layoutData.flatNodeImages[node.id]))}}
+            >{${innerComponent}}</Image>`;
+        } else {
+          innerComponent = `<Container
+        {...${JSON.stringify(figFillProps(fill, node, i))}}
+        >{${innerComponent}}</Container>`;
+        }
+        // });
+        // nodeChildren = nodeChildren.concat(nodeFills);
+      });
+    }
   } else if (node.type == "TEXT") {
-    component = `
+    innerComponent = `
       <Container
         key={"${node.name}-container"}
-        {...${JSON.stringify(propsFromNode)}}
+        {...${JSON.stringify(innerPropsFromNode)}}
       >
         <Text key={"${node.name}-text"}
         {...${JSON.stringify(figTextProps(node))}}>
@@ -495,7 +505,7 @@ function figmaLayerText({
     `;
   }
 
-  return component;
+  return `<Container {...${JSON.stringify(propsFromNode)}}>{${innerComponent}}</Container>`;
 }
 
 function figImageProps(fill, node, imageSrc) {
@@ -559,11 +569,17 @@ function figTextProps(node) {
   };
 }
 
-function figFillProps(fill, node) {
+function figFillProps(fill, node, fillIndex) {
   let props: any = {
+    key: node.id + "_fill_" + fillIndex,
     backgroundOpacity: fill.opacity ? fill.opacity : 1,
     borderRadius: node.cornerRadius ? node.cornerRadius : 0,
+    flexGrow: 1,
   };
+  if (fill.type.indexOf("GRADIENT") > -1) {
+    props.color = fill.gradientStops[0].color;
+    props.opacity = fill.gradientStops[0].color.a;
+  }
 
   if (fill.color) {
     props.backgroundColor = figColor(fill.color);
@@ -584,7 +600,6 @@ function figProps(node, parentNode) {
     opacity: "backgroundOpacity",
     itemSpacing: "gap",
     key: "name",
-    overflow: node.clipsContent ? "hidden" : "visible",
   };
 
   //   let reactStyle = {};
@@ -592,6 +607,9 @@ function figProps(node, parentNode) {
     if (propertyMappings[key]) {
       props[propertyMappings[key]] = node[key];
     }
+  }
+  if (node.clipsContent) {
+    props.overflow = "hidden";
   }
 
   // if (parentNode) {
@@ -607,18 +625,18 @@ function figProps(node, parentNode) {
   // }
 
   // TODO: Temp solve for fills, just use the first solid one
-  if (
-    node.type == "FRAME" ||
-    node.type == "IMAGE" ||
-    node.type == "RECTANGLE" ||
-    node.type == "GROUP"
-  ) {
-    const fill = node.fills.find((element) => element.type == "SOLID");
-    if (fill) {
-      props.backgroundColor = figColor(fill.color);
-      props.backgroundOpacity = fill.opacity;
-    }
-  }
+  // if (
+  //   node.type == "FRAME" ||
+  //   node.type == "IMAGE" ||
+  //   node.type == "RECTANGLE" ||
+  //   node.type == "GROUP"
+  // ) {
+  //   const fill = node.fills.find((element) => element.type == "SOLID");
+  //   if (fill) {
+  //     props.backgroundColor = figColor(fill.color);
+  //     props.backgroundOpacity = fill.opacity;
+  //   }
+  // }
 
   // for (let i in props) {
   //   if (i == "height") {
@@ -639,6 +657,36 @@ function figProps(node, parentNode) {
 
   return props;
 }
+function figInnerProps(node, parentNode) {
+  // console.log("node is", node);
+  const { children, absoluteBoundingBox, ...orgProps } = node;
+  let props: any = {};
+
+  // uikit:figma
+  const propertyMappings = {
+    type: "type",
+    // cornerRadius: "borderRadius",
+    // opacity: "backgroundOpacity",
+    itemSpacing: "gap",
+    key: "name",
+    // overflow: node.clipsContent ? "hidden" : "visible",
+  };
+
+  //   let reactStyle = {};
+  for (const key in node) {
+    if (propertyMappings[key]) {
+      props[propertyMappings[key]] = node[key];
+    }
+  }
+
+  props = {
+    flexGrow: 1,
+    ...props,
+    ...translateFigmaInnerPropsToReact(node, parentNode),
+  };
+
+  return props;
+}
 
 function figColor(color) {
   const translatedColor = {
@@ -651,158 +699,10 @@ function figColor(color) {
   return colorString;
 }
 
-function translateFigmaConstraintsToReact(node, parentNode) {
+function translateFigmaInnerPropsToReact(node, parentNode) {
   let style: any = {};
-  const nodeBox = node.absoluteBoundingBox;
-  const parentBox = parentNode?.absoluteBoundingBox;
 
-  // props.positionLeft =
-  //   node.absoluteRenderBounds.x - parentNode.absoluteBoundingBox.x;
-  // props.positionTop =
-  //   node.absoluteRenderBounds.y - parentNode.absoluteBoundingBox.y;
-
-  if (parentNode) {
-    // There IS auto layout
-    if (parentNode.layoutMode) {
-      style.positionType = "static";
-      if (
-        node.layoutSizingHorizontal == "FILL" ||
-        node.layoutSizingVertical == "FILL"
-      ) {
-        style.flexGrow = 1;
-      }
-      if (node.layoutSizingHorizontal == "FIXED") {
-        style.width = nodeBox.width;
-      } else if (node.layoutSizingHorizontal == "HUG") {
-        style.alignItems = "flex-start";
-        delete style.width;
-      }
-      if (node.layoutSizingVertical == "FIXED") {
-        style.height = nodeBox.height;
-      } else if (node.layoutSizingVertical == "HUG") {
-        // style.alignItems = "flex-start";
-        // delete style.height;
-      }
-
-      // if (parentNode.layoutSizingHorizontal == "HUG") {
-      //   style.borderColor = "#f00";
-      //   style.positionRight = undefined;
-      //   style.positionLeft = undefined;
-
-      //   // style.flexShrink = 1;
-      // }
-      // if (parentNode.layoutSizingVertical == "HUG") {
-      //   style.borderColor = "#ff7";
-      //   style.positionTop = undefined;
-      //   style.positionBottom = undefined;
-      //   // style.flexShrink = 1;
-      // }
-
-      // if (node.layoutSizingVertical == "HUG") {
-      //   style.borderColor = "#f0f";
-      //   // style.positionType = "static";
-      //   // style.flexShrink = 1;
-      // }
-      // if (node.layoutSizingHorizontal == "HUG") {
-      //   style.borderColor = "#0ff";
-      //   style.flexShrink = 1;
-      //   style.padding = 0;
-      //   style.margin = 0;
-      //   // style.positionType = "static";
-      //   // style.flexShrink = 1;
-      // }
-
-      if (node.itemSpacing) {
-        // style.justifyContent = "space-between"; // Simplified example
-      }
-
-      // if (parentNode.layoutMode == "VERTICAL") {
-      //   style.positionType = "static";
-      // } else if (parentNode.layoutMode == "HORIZONTAL") {
-      //   style.positionType = "static";
-      //   // style.width="100%"
-      // }
-
-      // style.itemSpacing = 0;
-
-      // Figma's padding to Yoga's padding
-
-      // if (style.height) {
-      //   if (parentNode.paddingTop) {
-      //     style.height = style.height + parentNode.paddingTop;
-      //     style.paddingTop = parentNode.paddingTop;
-      //   }
-
-      //   if (parentNode.paddingBottom) {
-      //     style.height = style.height + parentNode.paddingBottom;
-      //     style.paddingBottom = parentNode.paddingBottom;
-      //   }
-      // }
-      // if (style.width) {
-      //   if (parentNode.paddingRight) {
-      //     style.width = style.width + parentNode.paddingRight;
-      //     style.paddingRight = parentNode.paddingRight;
-      //   }
-      //   if (parentNode.paddingLeft) {
-      //     style.width = style.width + parentNode.paddingLeft;
-      //     style.paddingLeft = parentNode.paddingLeft;
-      //   }
-      // }
-    } else {
-      style = { ...style, ...node.absoluteBoundingBox };
-      style.positionType = "absolute";
-      switch (node.constraints.vertical) {
-        case "TOP":
-          style.positionTop = nodeBox.y - parentBox.y;
-          break;
-        case "BOTTOM":
-          style.positionBottom =
-            parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
-          break;
-        case "TOP_BOTTOM":
-          style.positionTop = nodeBox.y - parentBox.y;
-          style.positionBottom =
-            parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
-          break;
-        case "CENTER":
-          style.positionTop = nodeBox.y - parentBox.y;
-          // ((nodeBox.y - parentBox.y) / parentBox.height) * 100 + "%";
-          break;
-        case "SCALE":
-          style.positionTop = nodeBox.y - parentBox.y;
-          // ((nodeBox.y - parentBox.y) / parentBox.height) * 100 + "%";
-          break;
-        // Centering and other cases can be added if necessary
-      }
-
-      switch (node.constraints.horizontal) {
-        case "LEFT":
-          style.positionLeft = nodeBox.x - parentBox.x;
-          break;
-        case "RIGHT":
-          style.positionRight =
-            parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-          break;
-        case "LEFT_RIGHT":
-          const l = nodeBox.x - parentBox.x;
-          const r = parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-          style.positionLeft = l;
-          style.positionRight = r;
-          style.width = (nodeBox.width / parentBox.width) * 100 + "%";
-          break;
-        case "CENTER":
-          style.positionLeft =
-            ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
-          break;
-        case "SCALE":
-          style.positionLeft =
-            ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
-          break;
-        // Centering and other cases can be added if necessary
-      }
-    }
-  }
-
+  // Padding ann inner component props
   switch (node.layoutAlign) {
     case "STRETCH":
       style.justifyContent = "space-between";
@@ -835,7 +735,6 @@ function translateFigmaConstraintsToReact(node, parentNode) {
       case "CENTER":
         style.alignItems = "center";
         style.justifyContent = "center";
-        style.borderColor = "#393";
         break;
       case "SPACE_BETWEEN":
         style.alignItems = "space-between";
@@ -843,6 +742,196 @@ function translateFigmaConstraintsToReact(node, parentNode) {
         break;
     }
   }
+
+  return style;
+}
+
+function translateFigmaConstraintsToReact(node, parentNode) {
+  let style: any = {};
+  const nodeBox = node.absoluteBoundingBox;
+  const parentBox = parentNode?.absoluteBoundingBox;
+
+  // props.positionLeft =
+  //   node.absoluteRenderBounds.x - parentNode.absoluteBoundingBox.x;
+  // props.positionTop =
+  //   node.absoluteRenderBounds.y - parentNode.absoluteBoundingBox.y;
+
+  // if (parentNode) {
+  // There IS auto layout
+  if (parentNode?.layoutMode) {
+    style.positionType = "static";
+    if (
+      node.layoutSizingHorizontal == "FILL" ||
+      node.layoutSizingVertical == "FILL"
+    ) {
+      style.flexGrow = 1;
+    }
+    if (node.layoutSizingHorizontal == "FIXED") {
+      style.width = nodeBox.width;
+    } else if (node.layoutSizingHorizontal == "HUG") {
+      style.alignItems = "flex-start";
+      delete style.width;
+    }
+    if (node.layoutSizingVertical == "FIXED") {
+      style.height = nodeBox.height;
+    } else if (node.layoutSizingVertical == "HUG") {
+      // style.alignItems = "flex-start";
+      // delete style.height;
+    }
+
+    // if (parentNode.layoutSizingHorizontal == "HUG") {
+    //   style.borderColor = "#f00";
+    //   style.positionRight = undefined;
+    //   style.positionLeft = undefined;
+
+    //   // style.flexShrink = 1;
+    // }
+    // if (parentNode.layoutSizingVertical == "HUG") {
+    //   style.borderColor = "#ff7";
+    //   style.positionTop = undefined;
+    //   style.positionBottom = undefined;
+    //   // style.flexShrink = 1;
+    // }
+
+    // if (node.layoutSizingVertical == "HUG") {
+    //   style.borderColor = "#f0f";
+    //   // style.positionType = "static";
+    //   // style.flexShrink = 1;
+    // }
+    // if (node.layoutSizingHorizontal == "HUG") {
+    //   style.borderColor = "#0ff";
+    //   style.flexShrink = 1;
+    //   style.padding = 0;
+    //   style.margin = 0;
+    //   // style.positionType = "static";
+    //   // style.flexShrink = 1;
+    // }
+
+    if (node.itemSpacing) {
+      // style.justifyContent = "space-between"; // Simplified example
+    }
+
+    // if (parentNode.layoutMode == "VERTICAL") {
+    //   style.positionType = "static";
+    // } else if (parentNode.layoutMode == "HORIZONTAL") {
+    //   style.positionType = "static";
+    //   // style.width="100%"
+    // }
+
+    // style.itemSpacing = 0;
+
+    // Figma's padding to Yoga's padding
+
+    // if (style.height) {
+    //   if (parentNode.paddingTop) {
+    //     style.height = style.height + parentNode.paddingTop;
+    //     style.paddingTop = parentNode.paddingTop;
+    //   }
+
+    //   if (parentNode.paddingBottom) {
+    //     style.height = style.height + parentNode.paddingBottom;
+    //     style.paddingBottom = parentNode.paddingBottom;
+    //   }
+    // }
+    // if (style.width) {
+    //   if (parentNode.paddingRight) {
+    //     style.width = style.width + parentNode.paddingRight;
+    //     style.paddingRight = parentNode.paddingRight;
+    //   }
+    //   if (parentNode.paddingLeft) {
+    //     style.width = style.width + parentNode.paddingLeft;
+    //     style.paddingLeft = parentNode.paddingLeft;
+    //   }
+    // }
+
+    // THERE IS NOT AUTOLAYOUT
+  } else {
+    style = { ...style, ...node.absoluteBoundingBox };
+    style.positionType = "absolute";
+
+    if (!parentBox) {
+      // This is the root
+      style.positionTop = 0;
+    } else if (node.constraints.vertical == "TOP") {
+      style.positionTop = nodeBox.y - parentBox.y;
+    } else if (node.constraints.vertical == "BOTTOM") {
+      style.positionBottom =
+        parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
+      parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+    } else if (node.constraints.vertical == "TOP_BOTTOM") {
+      style.positionTop = nodeBox.y - parentBox.y;
+      style.positionBottom =
+        parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
+    } else if (node.constraints.vertical == "CENTER") {
+      style.positionTop = nodeBox.y - parentBox.y;
+    } else if (node.constraints.vertical == "SCALE") {
+      style.positionTop = nodeBox.y - parentBox.y;
+    }
+
+    if (!parentBox) {
+      // This is the root
+      style.positionLeft = 0;
+    } else if (node.constraints.horizontal == "LEFT") {
+      style.positionLeft = nodeBox.x - parentBox.x;
+    } else if (node.constraints.horizontal == "RIGHT") {
+      style.positionRight =
+        parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+    } else if (node.constraints.horizontal == "LEFT_RIGHT") {
+      const l = nodeBox.x - parentBox.x;
+      const r = parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+      style.positionLeft = l;
+      style.positionRight = r;
+      style.width = (nodeBox.width / parentBox.width) * 100 + "%";
+    } else if (node.constraints.horizontal == "CENTER") {
+      style.positionLeft =
+        ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+    } else if (node.constraints.horizontal == "SCALE") {
+      style.positionLeft =
+        ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+    }
+  }
+
+  // Padding ann inner component props
+  // switch (node.layoutAlign) {
+  //   case "STRETCH":
+  //     style.justifyContent = "space-between";
+  //     break;
+  // }
+
+  // // Issue with padding: it pushes the background fill in, need to do padding in another container
+
+  // style.paddingTop = node.paddingTop;
+  // style.paddingBottom = node.paddingBottom;
+  // style.paddingLeft = node.paddingLeft;
+  // style.paddingRight = node.paddingRight;
+
+  // if (node.layoutMode == "VERTICAL") {
+  //   style.flexDirection = "column";
+  // } else if (node.layoutMode == "HORIZONTAL") {
+  //   style.flexDirection = "row";
+  //   // style.width="100%"
+  // }
+
+  // // Figma's alignment to Yoga's alignItems
+  // if (node.primaryAxisAlignItems) {
+  //   switch (node.primaryAxisAlignItems) {
+  //     case "MIN":
+  //       style.alignItems = "flex-start";
+  //       break;
+  //     case "MAX":
+  //       style.alignItems = "flex-end";
+  //       break;
+  //     case "CENTER":
+  //       style.alignItems = "center";
+  //       style.justifyContent = "center";
+  //       style.borderColor = "#393";
+  //       break;
+  //     case "SPACE_BETWEEN":
+  //       style.alignItems = "space-between";
+  //       style.justifyContent = "space-between";
+  //       break;
+  //   }
+  // }
 
   return style;
 }

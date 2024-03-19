@@ -9,10 +9,48 @@
 - You'll see your layout here, as well as the JSON and TSX
 - To sign out go to [/signout](/signout)
 
+# Finishing
+
+- Make landing page that explains what this is with links to UIKit, Codesandbox, Figma, the layout of this page, a youtube intro, etc
+- Make default import page with UI that explains how to use it
+- Turn the URL into a pill with a title if its valid
+- Make sure it all works in Headset, add a headset link that adds the token hmd.link/url
+
 # Todo
 
-- Make toggle to full screen
-- Add gradient support
-- Add stroke support
-- Add hover/press actions
+- Support properties
+  - Strokes
+  - horizontalPadding/verticalPadding
+  - counterAxisSpacing,
+  - layoutPositioning
+  - itemReverseZIndex,
+- Support types
+  - VECTOR
+- Derrive z depth from invisible dropshadow Y property
 - Add some kind of flow support
+- Figure out COMPONENT, INSTANCE
+  - Add hover/press actions
+
+# Lower priority
+
+- Hyperlink
+- Add wrapping support
+- Add grid support
+- Support shapes: STAR, LINE, ELLIPSE, REGULAR_POLYGON, RECTANGLE
+
+# Don't think these will work
+
+- overflowDirection
+- effects
+- maskType
+- BlendMode
+- BOOLEAN_OPERATION
+- INNER_SHADOW
+- DROP_SHADOW
+- LAYER_BLUR
+- BACKGROUND_BLUR
+
+# Future thoughts
+
+- Could you maintain a UIKit "kit" in figma and export components?
+- Could you make a symbol library for the existing "kits" and map those layers to proper components?
