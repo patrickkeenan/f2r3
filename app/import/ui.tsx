@@ -8,7 +8,7 @@ import {
   Container,
   Text,
   Content,
-  Input,
+  DefaultProperties,
 } from "@react-three/uikit";
 import {
   PictureInPicture2 as PIPIcon,
@@ -18,11 +18,17 @@ import {
 } from "@react-three/uikit-lucide";
 import { Tabs, TabsButton } from "@/app/components/tabs";
 import { Button } from "@/app/components/button";
+import { Input } from "@/app/components/input";
 import { Card } from "@/app/components/card";
 import { Loading } from "@/app/components/loading";
 import { useFigmaContext } from "@/app/auth/figmaTokenContext";
 
-export default function UI({ onSwitch, isLoaded = false, ...props }) {
+export default function UI({
+  onSwitch,
+  onToggleEditor,
+  isLoaded = false,
+  ...props
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { token, nodeId, fileId } = useFigmaContext();
@@ -76,6 +82,7 @@ export default function UI({ onSwitch, isLoaded = false, ...props }) {
     setLayoutData(null);
     setLoadingHover(false);
     setFrameUrl("");
+    setUrlValid(false);
     router.push(`${pathname}`);
   }
   // useEffect(() => {
@@ -94,173 +101,134 @@ export default function UI({ onSwitch, isLoaded = false, ...props }) {
   }, [isFullscreen]);
 
   return (
-    <Container
-      positionType={"absolute"}
-      positionBottom={20}
-      positionLeft={"50%"}
-      flexShrink={1}
-      alignItems={"flex-start"}
-      zIndexOffset={500}
-    >
-      <Container positionLeft={"-50%"}>
-        <Card
-          borderRadius={16}
-          borderBend={5}
-          padding={1}
-          flexDirection="row"
-          justifyContent="space-between"
-          alignItems="center"
-          gap={4}
-          // backgroundOpacity={0}
-        >
-          {!isLoaded && !nodeId && !fileId && (
-            <>
-              <Container
-                borderBottomLeftRadius={10}
-                borderBottomRightRadius={4}
-                borderTopLeftRadius={10}
-                borderTopRightRadius={4}
-                // borderBend={5}
-                // padding={6}
-                flexDirection="row"
-                justifyContent="space-between"
-                alignItems="center"
-                alignContent={"center"}
-                gap={4}
-                width={200}
-                // flexGrow={1}
-                height={32}
-                // backgroundOpacity={0}
-                backgroundColor={"#fff"}
-                paddingX={12}
-                onClick={(e) => {
-                  // console.log(inputRef.current);
-                  // inputRef.current.value = "";
-                  // setFrameUrl("");
-                  // @ts-ignore
-                  inputRef.current.focus();
-                  // e.target.focus();
-                }}
-                overflow={"hidden"}
-              >
-                <Container>
-                  <Input
-                    // positionType={"absolute"}
-                    // positionTop={10}
-                    fontSize={12}
-                    ref={inputRef}
-                    defaultValue=""
-                    color={"#000"}
-                    value={frameUrl}
-                    onValueChange={(val) => setFrameUrl(val)}
-                    overflow={"scroll"}
-                  />
-                  {frameUrl == "" && (
-                    <Container
-                      // marginLeft={-4}
-                      // positionTop={10}
-                      // flexGrow={1}
-                      positionType={"absolute"}
-                    >
-                      <Text fontSize={12} color={"rgb(0,0,0)"} opacity={0.3}>
-                        https://www.figma...
-                      </Text>
-                    </Container>
-                  )}
-                </Container>
-              </Container>
-
+    <DefaultProperties>
+      <Container
+        positionType={"absolute"}
+        positionBottom={20}
+        positionLeft={"50%"}
+        flexShrink={1}
+        alignItems={"flex-start"}
+        zIndexOffset={500}
+      >
+        <Container positionLeft={"-50%"}>
+          <Card
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            {!token && (
               <Button
                 variant="pill"
-                size="sm"
-                borderBottomLeftRadius={4}
-                borderBottomRightRadius={10}
-                borderTopLeftRadius={4}
-                borderTopRightRadius={10}
-                disabled={!urlValid}
                 onClick={() => {
-                  startLoading();
+                  const authUrl = `https://www.figma.com/oauth?client_id=${process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_SERVER_URL}/auth&scope=files:read&state=abc&response_type=code`;
+                  router.push(authUrl);
                 }}
               >
-                <Text fontWeight={"medium"}>Import</Text>
+                <Text fontWeight={"medium"}>Login with Figma</Text>
               </Button>
-            </>
-          )}
+            )}
+            {token && (
+              <>
+                {!isLoaded && !nodeId && !fileId && (
+                  <>
+                    <Container flexDirection="row" alignItems="stretch" gap={4}>
+                      <Input
+                        variant="pill"
+                        width={200}
+                        placeholder="https://"
+                        defaultValue=""
+                        value={frameUrl}
+                        onValueChange={(val) => setFrameUrl(val)}
+                      />
+                      <Button
+                        variant="pill"
+                        disabled={!urlValid}
+                        onClick={() => {
+                          startLoading();
+                        }}
+                      >
+                        <Text fontWeight={"medium"}>Import</Text>
+                      </Button>
+                    </Container>
+                  </>
+                )}
 
-          <Container
-            display={!isLoaded && nodeId && fileId ? "flex" : "none"}
-            padding={4}
-            onHoverChange={(v) => setLoadingHover(v)}
-            onClick={() => {
-              resetUrl();
-            }}
-          >
-            {loadingHover && <XIcon height={20} width={20} />}
-            {!loadingHover && <Loading size="sm" />}
-          </Container>
+                <Container
+                  display={!isLoaded && nodeId && fileId ? "flex" : "none"}
+                  padding={4}
+                  onHoverChange={(v) => setLoadingHover(v)}
+                  onClick={() => {
+                    resetUrl();
+                  }}
+                >
+                  {loadingHover && <XIcon height={28} width={28} />}
+                  {!loadingHover && <Loading size="md" />}
+                </Container>
 
-          {isLoaded && (
-            // <Container key="toolbar" display={isLoaded ? "flex" : "none"}>
-            <>
-              <Button
-                variant="icon"
-                size="sm"
-                borderRadius={12}
-                selected={showEditor}
-                onClick={() => setShowEditor(!showEditor)}
-              >
-                <CodeIcon height={16} width={16} />
-              </Button>
-              <Container
-                height={24}
-                width={1}
-                borderColor={"#fff"}
-                borderOpacity={0.2}
-                borderLeft={1}
-                marginX={4}
-              />
-              <Button
-                variant="icon"
-                size="sm"
-                borderRadius={10}
-                selected={isFullscreen ? true : false}
-                onClick={() => setIsFullscreen(true)}
-              >
-                <PIPIcon height={16} width={16} />
-              </Button>
-              <Button
-                variant="icon"
-                size="sm"
-                borderRadius={12}
-                selected={isFullscreen ? false : true}
-                onClick={() => setIsFullscreen(false)}
-              >
-                <PIPIcon height={16} width={16} />
-              </Button>
-              <Container
-                height={24}
-                width={1}
-                borderColor={"#fff"}
-                borderOpacity={0.2}
-                borderLeft={1}
-                marginX={4}
-              />
-              <Button
-                variant="icon"
-                size="sm"
-                borderRadius={10}
-                onClick={() => {
-                  resetUrl();
-                }}
-              >
-                <XIcon height={16} width={16} />
-              </Button>
-              {/* </Container> */}
-            </>
-          )}
-        </Card>
+                {isLoaded && (
+                  // <Container key="toolbar" display={isLoaded ? "flex" : "none"}>
+                  <>
+                    <Button
+                      variant="icon"
+                      size="sm"
+                      selected={showEditor}
+                      onClick={() => {
+                        setShowEditor(!showEditor);
+                        onToggleEditor(!showEditor);
+                      }}
+                    >
+                      <CodeIcon height={16} width={16} />
+                    </Button>
+                    <Container
+                      height={24}
+                      width={1}
+                      borderColor={"#fff"}
+                      borderOpacity={0.2}
+                      borderLeft={1}
+                      marginX={8}
+                    />
+                    <Button
+                      variant="icon"
+                      size="sm"
+                      selected={isFullscreen ? true : false}
+                      onClick={() => setIsFullscreen(true)}
+                    >
+                      <PIPIcon height={16} width={16} />
+                    </Button>
+                    <Button
+                      variant="icon"
+                      size="sm"
+                      selected={isFullscreen ? false : true}
+                      onClick={() => setIsFullscreen(false)}
+                    >
+                      <PIPIcon height={16} width={16} />
+                    </Button>
+                    <Container
+                      height={24}
+                      width={1}
+                      borderColor={"#fff"}
+                      borderOpacity={0.2}
+                      borderLeft={1}
+                      marginX={8}
+                    />
+                    <Button
+                      variant="icon"
+                      size="sm"
+                      onClick={() => {
+                        resetUrl();
+                      }}
+                    >
+                      <XIcon height={16} width={16} />
+                    </Button>
+                    {/* </Container> */}
+                  </>
+                )}
+              </>
+            )}
+          </Card>
+        </Container>
       </Container>
-    </Container>
+    </DefaultProperties>
   );
   // return (
   //   <div className={styles.tabBar}>

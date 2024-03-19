@@ -1,4 +1,5 @@
 "use client";
+import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
@@ -20,7 +21,8 @@ import { Button } from "@/app/components/button";
 import { useFigmaContext } from "../auth/figmaTokenContext";
 import UI from "./ui";
 import { noEvents, XWebPointers } from "@coconut-xr/xinteraction/react";
-
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import EditorView from "./editor";
 // import { staticLayoutData } from "./layoutData";
 
 export default function Preview({ ...props }) {
@@ -29,8 +31,10 @@ export default function Preview({ ...props }) {
   const { token, nodeId, fileId } = useFigmaContext();
   const hasScene = nodeId && fileId ? true : false;
   const [fullscreen, setFullscreen] = useState(true);
+  const [showEditor, setShowEditor] = useState(false);
 
   const [layoutData, setLayoutData] = useState<null | any>(null);
+  const [layoutTsxString, setLayoutTsxString] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [rootNode, setRootNode] = useState(null);
   useEffect(() => {
@@ -40,6 +44,7 @@ export default function Preview({ ...props }) {
       importFigma(token, fileId, nodeId);
     } else {
       setLayoutData(null);
+      setShowEditor(false);
     }
     console.log("check params");
   }, [token, fileId, nodeId]);
@@ -144,82 +149,108 @@ export default function Preview({ ...props }) {
   };
 
   return (
-    <>
-      <Canvas
-        events={noEvents}
-        style={{ height: "100%", touchAction: "none" }}
-        gl={{ localClippingEnabled: true }}
-      >
-        <XWebPointers />
-        {/* {!hasScene && (
-          <>
-            <mesh>
-              <meshBasicMaterial color="#f09" />
-              <sphereGeometry />
-            </mesh>
-            <OrbitControls />
-          </>
-        )} */}
-        <Fullscreen>
-          <UI
-            key="ui"
-            onSwitch={(fullscreen) => {
-              console.log("fullscreen", fullscreen);
-              setFullscreen(fullscreen);
-            }}
-            onImport={() => console.log("import")}
-            isLoaded={loaded}
-          />
-          {fullscreen && (
-            <Scene key={1} layoutData={layoutData} isFullscreen={fullscreen} />
+    <PanelGroup direction="vertical">
+      <Panel maxSize={90} defaultSize={75}>
+        <Canvas
+          events={noEvents}
+          style={{ height: "100%", touchAction: "none" }}
+          gl={{ localClippingEnabled: true }}
+        >
+          <XWebPointers />
+          <ambientLight intensity={0.5} />
+          <directionalLight intensity={1} position={[-5, 5, 10]} />
+          {!hasScene && (
+            <>
+              <mesh>
+                <meshBasicMaterial color="#f09" />
+                <sphereGeometry />
+              </mesh>
+              <OrbitControls />
+            </>
           )}
-        </Fullscreen>
-        {!fullscreen && (
-          <>
-            <Scene key={2} layoutData={layoutData} isFullscreen={fullscreen} />
-            <OrbitControls />
-          </>
-        )}
-      </Canvas>
-    </>
+          <Fullscreen>
+            <UI
+              key="ui"
+              onSwitch={(fullscreen) => {
+                console.log("fullscreen", fullscreen);
+                setFullscreen(fullscreen);
+              }}
+              onImport={() => console.log("import")}
+              isLoaded={loaded}
+              onToggleEditor={(val) => setShowEditor(val)}
+            />
+            {fullscreen && (
+              <Scene
+                layoutData={layoutData}
+                isFullscreen={fullscreen}
+                handleStringOutput={(str) => setLayoutTsxString(str)}
+              />
+            )}
+          </Fullscreen>
+          {!fullscreen && (
+            <>
+              <Scene
+                layoutData={layoutData}
+                isFullscreen={fullscreen}
+                handleStringOutput={(str) => setLayoutTsxString(str)}
+              />
+              <OrbitControls />
+            </>
+          )}
+        </Canvas>
+      </Panel>
+
+      {showEditor && (
+        <>
+          <PanelResizeHandle style={{ height: 8, background: "#000" }} />
+          <Panel maxSize={75}>
+            <EditorView
+              layoutData={layoutData}
+              layoutTsxString={layoutTsxString}
+              isFullscreen={fullscreen}
+            />
+          </Panel>
+        </>
+      )}
+    </PanelGroup>
   );
 }
 
-function Scene({ isFullscreen, layoutData, ...props }) {
+function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
   if (!layoutData) return <></>;
   const rootNode = layoutData.nodes[Object.keys(layoutData.nodes)[0]].document;
 
   // // Turn layout JSON into TSX
-  // useEffect(() => {
-  //   const layoutText = figmaLayerText({
-  //     node: rootNode,
-  //     key: "rootNode",
-  //     layoutData,
-  //     width: "100%",
-  //     height: "100%",
-  //     overflow: "scroll",
-  //   });
-  //   let sceneString = `
-  //   import { Root, Fullscreen, Container, Text, Image, Content } from "@react-three/uikit";
-  //   export default function Layout(){`;
-  //   if (fullscreen) {
-  //     sceneString += `return (<Fullscreen>
-  //         ${layoutText}
-  //        </Fullscreen>`;
-  //   } else {
-  //     sceneString += `return (<Root
-  //       pixelSize={0.01}
-  //       sizeX={${rootNode.absoluteBoundingBox.width / 100}}
-  //       sizeY={${rootNode.absoluteBoundingBox.height / 100}}
-  //     >
-  //       ${layoutText}
-  //     </Root>`;
-  //   }
-  //   sceneString += `)}`;
-  //   // console.log("sceneString", sceneString);
-  //   handleStringOutput(sceneString);
-  //   // window._sceneString = sceneString;
-  // }, [layoutData]);
+  useEffect(() => {
+    const layoutText = figmaLayerText({
+      node: rootNode,
+      key: "rootNode",
+      layoutData,
+      width: "100%",
+      height: "100%",
+      overflow: "scroll",
+    });
+    let sceneString = `
+    import { Root, Fullscreen, Container, Text, Image, Content } from "@react-three/uikit";
+    export default function Layout(){`;
+    if (isFullscreen) {
+      sceneString += `return (<Fullscreen>
+          ${layoutText}
+         </Fullscreen>`;
+    } else {
+      sceneString += `return (<Root
+        pixelSize={0.01}
+        sizeX={${rootNode.absoluteBoundingBox.width / 100}}
+        sizeY={${rootNode.absoluteBoundingBox.height / 100}}
+      >
+        ${layoutText}
+      </Root>`;
+    }
+    sceneString += `)}`;
+    // console.log("sceneString", sceneString);
+    handleStringOutput(sceneString);
+    // window._sceneString = sceneString;
+  }, [layoutData]);
 
   // TODO: Fix UI, its not responsive after running the import, probably the UI is mucked up some how
   if (!layoutData || !rootNode) {
@@ -257,7 +288,6 @@ function Scene({ isFullscreen, layoutData, ...props }) {
 function FigmaLayer({
   node,
   parentNode = null,
-  asString = false,
   layoutData = { images: {}, flatNodeImages: {} },
   ...props
 }) {
@@ -398,7 +428,6 @@ function FigmaLayer({
 function figmaLayerText({
   node,
   parentNode = null,
-  asString = false,
   layoutData = { images: {}, flatNodeImages: {} },
   ...props
 }) {

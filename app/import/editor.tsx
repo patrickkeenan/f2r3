@@ -10,29 +10,34 @@ import * as estree from "prettier/plugins/estree";
 import * as typescript from "prettier/plugins/typescript";
 import prettier from "prettier/standalone";
 import Preview from "./preview";
-import { FigmaProvider } from "../auth/figmaTokenContext";
+import { useFigmaContext } from "../auth/figmaTokenContext";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
-export default function EditorPage({ figmaToken, ...props }) {
-  const router = useRouter();
-  // const figmaToken = useFigmaToken();
-
+export default function EditorView({
+  layoutData,
+  layoutTsxString,
+  isFullscreen,
+  ...props
+}) {
+  const { token, nodeId, fileId } = useFigmaContext();
   const [layoutDataString, setLayoutDataString] = useState("");
   const [reactCodeString, setReactCodeString] = useState("");
-  const [layoutData, setLayoutData] = useState<any | null>(null);
-  const [frameLink, setFrameLink] = useState(
-    "https://www.figma.com/file/qGDiNCmTVCTuBdAoMyMXc4/UIKit-Figma-logo?type=design&node-id=85-10&mode=design&t=WjtxSFHOgkMlDqbe-11"
-  );
-  function parseFigmaUrl(url: string): { nodeId: string; fileId: string } {
-    const urlObj = new URL(url);
-    const searchParams = new URLSearchParams(urlObj.search);
 
-    const nodeId = searchParams.get("node-id");
-    const fileId = urlObj.pathname.split("/")[2];
-
-    return { nodeId: nodeId ?? "", fileId: fileId ?? "" };
-  }
+  useEffect(() => {
+    formatJsonAsText(layoutData).then(() => setFileName("layout.json"));
+  }, []);
+  useEffect(() => {
+    prettier
+      .format(layoutTsxString, {
+        parser: "typescript",
+        plugins: [babel, typescript, estree],
+      })
+      .then((formattedString) => {
+        console.log("formatted string", formattedString);
+        setReactCodeString(formattedString);
+      });
+  }, [layoutTsxString]);
 
   const files = {
     "layout.json": {
@@ -46,7 +51,7 @@ export default function EditorPage({ figmaToken, ...props }) {
       value: reactCodeString,
     },
   };
-  const { fileId, nodeId } = parseFigmaUrl(frameLink);
+
   const editorRef = useRef(null);
   const [fileName, setFileName] = useState("layout.json");
   const file = files[fileName];
@@ -85,95 +90,7 @@ export default function EditorPage({ figmaToken, ...props }) {
     }
   }, [monaco]);
 
-  const importFigma = () => {
-    setLayoutDataString("");
-    setLayoutData(null);
-    if (figmaToken) {
-      const { fileId, nodeId } = parseFigmaUrl(frameLink);
-      const fileUrl = `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`;
-      // const fileUrl = `https://api.figma.com/v1/files/${fileId}`;
-      console.log("getting", fileUrl, "X-FIGMA-TOKEN" + figmaToken);
-
-      fetch(fileUrl, {
-        headers: {
-          // "X-FIGMA-TOKEN": figmaToken,
-          Authorization: `Bearer ${figmaToken}`,
-        },
-      })
-        .then((response) => response.json())
-        .then(async (jsonData) => {
-          console.log("got file data", jsonData);
-          const imagesUrl = `https://api.figma.com/v1/files/${fileId}/images`;
-          fetch(imagesUrl, {
-            headers: {
-              // "X-FIGMA-TOKEN": figmaToken,
-              Authorization: `Bearer ${figmaToken}`,
-            },
-          })
-            .then((response) => response.json())
-            .then(async (imageData) => {
-              jsonData.fileId = fileId;
-              jsonData.images = imageData.meta.images;
-
-              fetchLayoutImages(jsonData);
-            });
-        });
-    }
-  };
-
-  const fetchLayoutImages = (jsonData) => {
-    let imagesByNodeId = {};
-    for (var i in jsonData.nodes) {
-      imagesByNodeId = checkLayerForImages(
-        jsonData.nodes[i].document,
-        imagesByNodeId,
-        jsonData.fileId
-      );
-    }
-    const nodeIds = Object.keys(imagesByNodeId).join(",");
-    // fetchImageByNodeId(nodeId);
-    const imagesUrl = `https://api.figma.com/v1/images/${fileId}?ids=${nodeIds}`;
-    fetch(imagesUrl, {
-      headers: {
-        Authorization: `Bearer ${figmaToken}`,
-      },
-    })
-      .then((response) => response.json())
-      .then(async (imageData) => {
-        const imageSrc = imageData.images;
-        console.log("got image data", imageData, imageSrc);
-        // Add node with src
-        // flatNodeImages[i] = imageSrc;
-        jsonData.flatNodeImages = imageData.images;
-        setLayoutData(jsonData);
-      });
-
-    return jsonData;
-  };
-  const checkLayerForImages = (node, imagesByNodeId, fileId) => {
-    if (!node.fills) {
-      console.log("no fill", node);
-    } else {
-      const hasComplexFills = node.fills.some((fill) => fill.type !== "SOLID");
-      if (hasComplexFills) {
-        console.log(node.id, hasComplexFills);
-        imagesByNodeId[node.id] = "blank";
-        // fetchImageByNodeId(node.id);
-      }
-    }
-    if (node.children) {
-      for (var i in node.children) {
-        imagesByNodeId = checkLayerForImages(
-          node.children[i],
-          imagesByNodeId,
-          fileId
-        );
-      }
-    }
-    return imagesByNodeId;
-  };
-
-  const formatJsonAsTsx = async (jsonData) => {
+  const formatJsonAsText = async (jsonData) => {
     const dataString =
       "export const staticLayoutData = " + JSON.stringify(jsonData);
     const formattedString = await prettier.format(dataString, {
@@ -185,132 +102,47 @@ export default function EditorPage({ figmaToken, ...props }) {
 
   return (
     <>
-      <FigmaProvider token={figmaToken} fileId={fileId} nodeId={nodeId}>
-        <div
-          style={{
-            height: 56,
-            width: 500,
-            margin: "auto",
-            marginTop: 13,
-            flexWrap: "nowrap",
-            display: "flex",
-            position: "relative",
-          }}
-        >
-          <input
-            style={{
-              width: "100%",
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,.2)",
-              borderRadius: 16,
-              paddingLeft: 16,
-              paddingRight: 16,
-              outline: "none!important",
-              color: "#fff",
-              fontSize: 16,
-            }}
-            type="text"
-            value={frameLink}
-            placeholder="⌘L · Paste Frame link"
-            onChange={(event: any) => setFrameLink(event.target.value)}
-            onFocus={(event: any) => {
-              event.target.select();
-            }}
-          />
-          <button
-            style={{
-              position: "absolute",
-              right: 12,
-              top: 12,
-              height: 32,
-              borderRadius: 8,
-              border: "0 none",
-              paddingLeft: 12,
-              paddingRight: 12,
-            }}
-            disabled={frameLink == ""}
-            onClick={() => {
-              importFigma();
-            }}
-          >
-            Import
-          </button>
-        </div>
-
-        <button
-          style={{
-            position: "fixed",
-            right: 20,
-            top: 20,
-            height: 32,
-            borderRadius: 8,
-            border: "0 none",
-            paddingLeft: 12,
-            paddingRight: 12,
-          }}
-          onClick={() => {
-            router.push("/signout");
-          }}
-        >
-          Sign out
-        </button>
-
-        <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
+      <div
+        style={{ display: "flex", alignItems: "center", background: "#1e1e1e" }}
+      >
+        <div className={styles.tabBar}>
           <div
-            style={{
-              width: "100vw",
-              bottom: 0,
-              top: 72,
-              position: "fixed",
+            className={`${styles.tabBarButton} ${fileName === "layout.json" ? styles.tabBarButtonSelected : ""}`}
+            onClick={() => setFileName("layout.json")}
+          >
+            JSON
+          </div>
+          <div
+            className={`${styles.tabBarButton} ${fileName === "layout.tsx" ? styles.tabBarButtonSelected : ""}`}
+            onClick={() => {
+              formatJsonAsText(layoutData).then(() =>
+                setFileName("layout.tsx")
+              );
             }}
           >
-            <div style={{ height: "50%", width: "100%" }}>
-              <Preview
-                layoutData={layoutData}
-                figmaToken={figmaToken}
-                handleStringOutput={(stringOutput) =>
-                  setReactCodeString(stringOutput)
-                }
-              />
-            </div>
-            <button
-              disabled={fileName === "layout.json"}
-              onClick={() => setFileName("layout.json")}
-            >
-              layout.json
-            </button>
-            <button
-              disabled={fileName === "layout.tsx"}
-              onClick={() => {
-                formatJsonAsTsx(layoutData).then(() =>
-                  setFileName("layout.tsx")
-                );
-              }}
-            >
-              layout.tsx
-            </button>
-            <Editor
-              path={file.name}
-              defaultLanguage={file.language}
-              defaultValue={file.value}
-              height="50%"
-              width="100%"
-              theme="vs-dark"
-              saveViewState={true}
-              onMount={handleEditorDidMount}
-              //   onChange={handleEditorChange}
-              value={file.value}
-              options={{
-                tabSize: 2,
-                insertSpaces: true,
-                autoIndent: "advanced",
-                wordWrap: "on",
-                folding: true,
-              }}
-            />
+            TSX
           </div>
         </div>
-      </FigmaProvider>
+      </div>
+      <Editor
+        path={file.name}
+        defaultLanguage={file.language}
+        defaultValue={file.value}
+        height="100%"
+        width="100%"
+        theme="vs-dark"
+        saveViewState={true}
+        onMount={handleEditorDidMount}
+        //   onChange={handleEditorChange}
+        value={file.value}
+        options={{
+          tabSize: 2,
+          insertSpaces: true,
+          autoIndent: "advanced",
+          wordWrap: "on",
+          folding: true,
+        }}
+      />
     </>
   );
 }
