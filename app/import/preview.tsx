@@ -23,6 +23,7 @@ import UI from "./ui";
 import { noEvents, XWebPointers } from "@coconut-xr/xinteraction/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import EditorView from "./editor";
+import { Color } from "three";
 // import { staticLayoutData } from "./layoutData";
 
 export default function Preview({ ...props }) {
@@ -350,10 +351,11 @@ function FigmaLayer({
         {nodeChildren}
       </Container>
     );
+
     // Fill layers if ther's' fills
     if (node.fills) {
       //   // For any gradient or image, we need to flatten them, and just have 1 background
-      node.fills.forEach((fill, i) => {
+      node.fills.reverse().forEach((fill, i) => {
         if (fill.type == "IMAGE") {
           innerComponent = (
             <Image
@@ -370,6 +372,15 @@ function FigmaLayer({
             </Container>
           );
         }
+      });
+    }
+    if (node.strokes) {
+      node.strokes.reverse().forEach((stroke, i) => {
+        innerComponent = (
+          <Container {...figStrokeProps(stroke, node, i)}>
+            {innerComponent}
+          </Container>
+        );
       });
     }
   } else if (node.type == "TEXT") {
@@ -476,7 +487,7 @@ function figmaLayerText({
 
     // Fill layers if ther's' fills
     if (node.fills) {
-      node.fills.forEach((fill, i) => {
+      node.fills.reverse().forEach((fill, i) => {
         // const nodeFills = node.fills.map((fill, i) => {
         if (fill.type == "IMAGE") {
           innerComponent = `<Image {...${JSON.stringify(figFillProps(fill, node, i))}}
@@ -489,6 +500,13 @@ function figmaLayerText({
         }
         // });
         // nodeChildren = nodeChildren.concat(nodeFills);
+      });
+    }
+    if (node.strokes) {
+      node.strokes.reverse().forEach((stroke, i) => {
+        innerComponent = `<Container
+        {...${JSON.stringify(figStrokeProps(stroke, node, i))}}
+        >{${innerComponent}}</Container>`;
       });
     }
   } else if (node.type == "TEXT") {
@@ -588,6 +606,38 @@ function figFillProps(fill, node, fillIndex) {
   return props;
 }
 
+function figStrokeProps(stroke, node, strokeIndex) {
+  // {
+  //   opacity: 0.6000000238418579,
+  //   blendMode: "NORMAL",
+  //   type: "SOLID",
+  //   color: { r: 1, g: 0.8399999737739563, b: 0, a: 1 },
+  // }
+  let props: any = {
+    key: node.id + "_stroke_" + strokeIndex,
+    borderOpacity: stroke.opacity ? stroke.opacity : 1,
+    border: node.strokeWeight,
+    borderRadius: node.cornerRadius ? node.cornerRadius + node.strokeWeight : 0,
+    flexGrow: 1,
+  };
+  if (stroke.type.indexOf("GRADIENT") > -1) {
+    props.borderColor = stroke.gradientStops[0].color;
+    props.borderOpacity = stroke.gradientStops[0].color.a;
+  }
+
+  if (stroke.color) {
+    props.borderColor = figColor(stroke.color);
+  }
+  if (strokeIndex > 1) {
+    props.marginLeft = -node.strokeWeight;
+    props.marginRight = -node.strokeWeight;
+    props.marginTop = -node.strokeWeight;
+    props.marginBottom = -node.strokeWeight;
+  }
+
+  return props;
+}
+
 function figProps(node, parentNode) {
   // console.log("node is", node);
   const { children, absoluteBoundingBox, ...orgProps } = node;
@@ -617,6 +667,25 @@ function figProps(node, parentNode) {
     ...props,
     ...translateFigmaConstraintsToReact(node, parentNode),
   };
+
+  // {
+  //   type: "DROP_SHADOW",
+  //   visible: true,
+  //   color: { r: 0, g: 0, b: 0, a: 0 },
+  //   blendMode: "NORMAL",
+  //   offset: { x: -20, y: 24 },
+  //   radius: 4,
+  //   showShadowBehindNode: false,
+  // },
+  if (node.effects?.length > 0) {
+    node.effects.forEach((effect, i) => {
+      if (effect.type == "DROP_SHADOW" && effect.color.a == 0) {
+        // This is a translation shadow
+        props.transformTranslateZ = effect.offset.y;
+        props.transformTranslateX = effect.offset.x;
+      }
+    });
+  }
   // } else {
   //   props = {
   //     ...props,
@@ -727,6 +796,22 @@ function translateFigmaInnerPropsToReact(node, parentNode) {
   if (node.primaryAxisAlignItems) {
     switch (node.primaryAxisAlignItems) {
       case "MIN":
+        style.justifyContent = "flex-start";
+        break;
+      case "MAX":
+        style.justifyContent = "flex-end";
+        break;
+      case "CENTER":
+        style.justifyContent = "center";
+        break;
+      case "SPACE_BETWEEN":
+        style.justifyContent = "space-between";
+        break;
+    }
+  }
+  if (node.counterAxisAlignItems) {
+    switch (node.counterAxisAlignItems) {
+      case "MIN":
         style.alignItems = "flex-start";
         break;
       case "MAX":
@@ -734,13 +819,24 @@ function translateFigmaInnerPropsToReact(node, parentNode) {
         break;
       case "CENTER":
         style.alignItems = "center";
-        style.justifyContent = "center";
         break;
-      case "SPACE_BETWEEN":
-        style.alignItems = "space-between";
-        style.justifyContent = "space-between";
+      case "BASELINE":
+        style.alignItems = "Baseline";
         break;
+      default:
+        style.alignItems = "stretch";
     }
+  }
+
+  if (style.width && node.strokeWeight && node.strokes.length > 0) {
+    style.width -= node.strokes.length * node.strokeWeight;
+    // style.paddingLeft += node.strokes.length * node.strokeWeight;
+    // style.paddingRight += node.strokes.length * node.strokeWeight;
+    // style.paddingTop += node.strokes.length * node.strokeWeight;
+    // style.paddingBottom += node.strokes.length * node.strokeWeight;
+  }
+  if (style.height && node.strokeWeight && node.strokes.length > 0) {
+    style.height -= node.strokes.length * node.strokeWeight;
   }
 
   return style;
@@ -769,8 +865,8 @@ function translateFigmaConstraintsToReact(node, parentNode) {
     if (node.layoutSizingHorizontal == "FIXED") {
       style.width = nodeBox.width;
     } else if (node.layoutSizingHorizontal == "HUG") {
-      style.alignItems = "flex-start";
-      delete style.width;
+      // style.alignItems = "flex-start";
+      // delete style.width;
     }
     if (node.layoutSizingVertical == "FIXED") {
       style.height = nodeBox.height;
@@ -852,42 +948,44 @@ function translateFigmaConstraintsToReact(node, parentNode) {
     if (!parentBox) {
       // This is the root
       style.positionTop = 0;
-    } else if (node.constraints.vertical == "TOP") {
-      style.positionTop = nodeBox.y - parentBox.y;
-    } else if (node.constraints.vertical == "BOTTOM") {
-      style.positionBottom =
-        parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
-      parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-    } else if (node.constraints.vertical == "TOP_BOTTOM") {
-      style.positionTop = nodeBox.y - parentBox.y;
-      style.positionBottom =
-        parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
-    } else if (node.constraints.vertical == "CENTER") {
-      style.positionTop = nodeBox.y - parentBox.y;
-    } else if (node.constraints.vertical == "SCALE") {
-      style.positionTop = nodeBox.y - parentBox.y;
-    }
-
-    if (!parentBox) {
-      // This is the root
       style.positionLeft = 0;
-    } else if (node.constraints.horizontal == "LEFT") {
-      style.positionLeft = nodeBox.x - parentBox.x;
-    } else if (node.constraints.horizontal == "RIGHT") {
-      style.positionRight =
+      style.width = "100%";
+      style.height = "100%";
+    } else {
+      if (node.constraints.vertical == "TOP") {
+        style.positionTop = nodeBox.y - parentBox.y;
+      } else if (node.constraints.vertical == "BOTTOM") {
+        style.positionBottom =
+          parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
         parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-    } else if (node.constraints.horizontal == "LEFT_RIGHT") {
-      const l = nodeBox.x - parentBox.x;
-      const r = parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-      style.positionLeft = l;
-      style.positionRight = r;
-      style.width = (nodeBox.width / parentBox.width) * 100 + "%";
-    } else if (node.constraints.horizontal == "CENTER") {
-      style.positionLeft =
-        ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
-    } else if (node.constraints.horizontal == "SCALE") {
-      style.positionLeft =
-        ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+      } else if (node.constraints.vertical == "TOP_BOTTOM") {
+        style.positionTop = nodeBox.y - parentBox.y;
+        style.positionBottom =
+          parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
+      } else if (node.constraints.vertical == "CENTER") {
+        style.positionTop = nodeBox.y - parentBox.y;
+      } else if (node.constraints.vertical == "SCALE") {
+        style.positionTop = nodeBox.y - parentBox.y;
+      }
+
+      if (node.constraints.horizontal == "LEFT") {
+        style.positionLeft = nodeBox.x - parentBox.x;
+      } else if (node.constraints.horizontal == "RIGHT") {
+        style.positionRight =
+          parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+      } else if (node.constraints.horizontal == "LEFT_RIGHT") {
+        const l = nodeBox.x - parentBox.x;
+        const r = parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+        style.positionLeft = l;
+        style.positionRight = r;
+        style.width = (nodeBox.width / parentBox.width) * 100 + "%";
+      } else if (node.constraints.horizontal == "CENTER") {
+        style.positionLeft =
+          ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+      } else if (node.constraints.horizontal == "SCALE") {
+        style.positionLeft =
+          ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+      }
     }
   }
 
