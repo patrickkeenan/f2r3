@@ -43,11 +43,18 @@ export default function UI({
 
   const startLoading = () => {
     setLoadingHover(false);
-    const { valid, nodeId, fileId } = parseFigmaUrl(frameUrl);
+    const { valid, nodeId, fileId, startingPointNodeId } =
+      parseFigmaUrl(frameUrl);
     if (valid) {
       setTimeout(() => {
         // importFigma(token, fileId, nodeId);
-        router.push(`${pathname}?nodeId=${nodeId}&fileId=${fileId}`);
+        if (startingPointNodeId) {
+          router.push(
+            `${pathname}?nodeId=${nodeId}&fileId=${fileId}&startingPointNodeId=${startingPointNodeId}`
+          );
+        } else {
+          router.push(`${pathname}?nodeId=${nodeId}&fileId=${fileId}`);
+        }
       }, 1000);
     }
   };
@@ -56,6 +63,7 @@ export default function UI({
     valid: boolean;
     nodeId: string;
     fileId: string;
+    startingPointNodeId: string;
   } {
     console.log("parse", url);
     try {
@@ -64,19 +72,26 @@ export default function UI({
       const searchParams = new URLSearchParams(urlObj.search);
 
       const nodeId = searchParams.get("node-id");
+      const startingPointNodeId = searchParams.get("starting-point-node-id");
       const fileId = urlObj.pathname.split("/")[2];
-      console.log(urlObj, urlObj.href.indexOf("https://www.figma.com/file"));
+      // console.log(urlObj, urlObj.href.indexOf("https://www.figma.com/file"));
 
       if (
-        nodeId &&
-        fileId &&
-        urlObj.href.indexOf("https://www.figma.com/file") > -1
+        (nodeId &&
+          fileId &&
+          urlObj.href.indexOf("https://www.figma.com/file") > -1) ||
+        urlObj.href.indexOf("https://www.figma.com/proto") > -1
       ) {
-        return { valid: true, nodeId: nodeId ?? "", fileId: fileId ?? "" };
+        return {
+          valid: true,
+          nodeId: nodeId?.replace("-", ":") ?? "",
+          fileId: fileId ?? "",
+          startingPointNodeId: startingPointNodeId ?? "",
+        };
       }
-      return { valid: false, nodeId: "", fileId: "" };
+      return { valid: false, nodeId: "", fileId: "", startingPointNodeId: "" };
     } catch (e) {
-      return { valid: false, nodeId: "", fileId: "" };
+      return { valid: false, nodeId: "", fileId: "", startingPointNodeId: "" };
     }
   }
   function resetUrl() {

@@ -18,7 +18,7 @@ import {
   Content,
 } from "@react-three/uikit";
 import { Button } from "@/app/components/button";
-import { useFigmaContext } from "../auth/figmaTokenContext";
+import { FigmaProvider, useFigmaContext } from "../auth/figmaTokenContext";
 import UI from "./ui";
 import { noEvents, XWebPointers } from "@coconut-xr/xinteraction/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -29,7 +29,7 @@ import { Color } from "three";
 export default function Preview({ ...props }) {
   // layoutData = staticLayoutData;
   // if (!layoutData) return <></>;
-  const { token, nodeId, fileId } = useFigmaContext();
+  const { token, nodeId, fileId, startingPointNodeId } = useFigmaContext();
   const hasScene = nodeId && fileId ? true : false;
   const [fullscreen, setFullscreen] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
@@ -41,33 +41,33 @@ export default function Preview({ ...props }) {
   useEffect(() => {
     // setLoaded(false);
     if (token && fileId && nodeId) {
-      console.log("start import", token, fileId, nodeId);
+      // console.log("start import", token, fileId, nodeId, startingPointNodeId);
       importFigma(token, fileId, nodeId);
     } else {
       setLayoutData(null);
       setShowEditor(false);
     }
-    console.log("check params");
-  }, [token, fileId, nodeId]);
+    // console.log("check params");
+  }, [token, fileId, nodeId, startingPointNodeId]);
 
   useEffect(() => {
     if (layoutData) {
-      setRootNode(layoutData.nodes[Object.keys(layoutData.nodes)[0]].document);
+      // setRootNode(layoutData.nodes[Object.keys(layoutData.nodes)[0]].document);
       setLoaded(true);
-      console.log(layoutData.nodes[Object.keys(layoutData.nodes)[0]].document);
+      // console.log(layoutData.nodes[Object.keys(layoutData.nodes)[0]].document);
     } else {
-      setRootNode(null);
+      // setRootNode(null);
       setLoaded(false);
     }
   }, [layoutData]);
 
   const importFigma = (token, fileId, nodeId) => {
     setLayoutData(null);
-    console.log("get", token, fileId, nodeId);
+    // console.log("get", token, fileId, nodeId);
     if (token && fileId && nodeId) {
-      const fileUrl = `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`;
-      // const fileUrl = `https://api.figma.com/v1/files/${fileId}`;
-      console.log("getting", fileUrl, "X-FIGMA-TOKEN" + token);
+      // const fileUrl = `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`;
+      const fileUrl = `https://api.figma.com/v1/files/${fileId}`;
+      // console.log("getting", fileUrl, "X-FIGMA-TOKEN" + token);
 
       fetch(fileUrl, {
         headers: {
@@ -77,7 +77,39 @@ export default function Preview({ ...props }) {
       })
         .then((response) => response.json())
         .then(async (jsonData) => {
-          console.log("got file data", jsonData);
+          // const rootNodeId = startingPointNodeId ? startingPointNodeId : nodeId;
+          console.log("jsonData", jsonData);
+
+          const allNodes = jsonData.document;
+
+          let rootNode = findNodeById(allNodes, nodeId);
+          // console.log(rootNode, allNodes, nodeId, fileId);
+          if (rootNode.type == "FRAME") {
+            jsonData.rootNodeId = rootNode.id;
+            // Loop through parents to get page
+            let currentNode = rootNode;
+            let pageNode;
+            while (currentNode.parentNode) {
+              if (currentNode.parentNode.type === "CANVAS") {
+                pageNode = currentNode.parentNode;
+              }
+              currentNode = currentNode.parentNode;
+            }
+            jsonData.pageNodeId = pageNode.id;
+          } else {
+            jsonData.pageNodeId = rootNode.id;
+            if (startingPointNodeId) {
+              // This is a flow, start at the start
+              jsonData.rootNodeId = startingPointNodeId;
+            } else {
+              // Set the root to the first child of the page
+              jsonData.rootNodeId = rootNode.children[0].id;
+            }
+          }
+
+          const groupedLayersByName = groupLayersByName(jsonData.document);
+
+          // Get images for each layer that needs it
           const imagesUrl = `https://api.figma.com/v1/files/${fileId}/images`;
           fetch(imagesUrl, {
             headers: {
@@ -89,6 +121,7 @@ export default function Preview({ ...props }) {
             .then(async (imageData) => {
               jsonData.fileId = fileId;
               jsonData.images = imageData.meta.images;
+              jsonData.layersByName = groupedLayersByName;
 
               fetchLayoutImages(jsonData, fileId);
             });
@@ -96,18 +129,42 @@ export default function Preview({ ...props }) {
     }
   };
 
+  const groupLayersByName = (jsonData) => {
+    return Object.entries(jsonData).reduce(
+      (prevValue, [key, value], index, acc) => {
+        // console.log(prevValue, key, value, index, acc);
+        if (key === "id") {
+          const name = acc.find((nodeProp: any, i) => nodeProp[0] == "name");
+
+          if (name && typeof name[1] == "string") {
+            // console.log("found name", name[1]);
+            prevValue[name[1]] = value;
+          }
+        } else if (key === "children" && Array.isArray(value)) {
+          // If the key is 'children', recursively reduce children
+          value.forEach((child) => {
+            Object.assign(prevValue, groupLayersByName(child));
+          });
+        }
+        return prevValue;
+      },
+      {}
+    );
+  };
+
   const fetchLayoutImages = (jsonData, fileId) => {
     let imagesByNodeId = {};
-    for (var i in jsonData.nodes) {
-      imagesByNodeId = checkLayerForImages(
-        jsonData.nodes[i].document,
-        imagesByNodeId,
-        jsonData.fileId
-      );
-    }
+    // for (var i in jsonData.nodes) {
+    imagesByNodeId = checkLayerForImages(
+      jsonData.document,
+      imagesByNodeId,
+      jsonData.fileId
+    );
+    // }
     const nodeIds = Object.keys(imagesByNodeId).join(",");
     // fetchImageByNodeId(nodeId);
     const imagesUrl = `https://api.figma.com/v1/images/${fileId}?ids=${nodeIds}`;
+    // console.log("getting images", imagesUrl);
     fetch(imagesUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -116,7 +173,7 @@ export default function Preview({ ...props }) {
       .then((response) => response.json())
       .then(async (imageData) => {
         const imageSrc = imageData.images;
-        console.log("got image data", imageData, imageSrc);
+        // console.log("got image data", imageData, imageSrc);
         // Add node with src
         // flatNodeImages[i] = imageSrc;
         jsonData.flatNodeImages = imageData.images;
@@ -128,11 +185,11 @@ export default function Preview({ ...props }) {
   };
   const checkLayerForImages = (node, imagesByNodeId, fileId) => {
     if (!node.fills) {
-      console.log("no fill", node);
+      // console.log("no fill", node);
     } else {
       const hasComplexFills = node.fills.some((fill) => fill.type !== "SOLID");
       if (hasComplexFills) {
-        console.log(node.id, hasComplexFills);
+        // console.log(node.id, hasComplexFills);
         imagesByNodeId[node.id] = "blank";
         // fetchImageByNodeId(node.id);
       }
@@ -173,7 +230,7 @@ export default function Preview({ ...props }) {
             <UI
               key="ui"
               onSwitch={(fullscreen) => {
-                console.log("fullscreen", fullscreen);
+                // console.log("fullscreen", fullscreen);
                 setFullscreen(fullscreen);
               }}
               onImport={() => console.log("import")}
@@ -217,9 +274,64 @@ export default function Preview({ ...props }) {
   );
 }
 
+const findNodeById = (nodes, id: string) => {
+  // Base case: If the current node's id matches the target id, return the node.
+  if (nodes.id === id) {
+    return nodes;
+  }
+
+  // If the current node has children, recursively search in the children.
+  if (nodes.children && nodes.children.length > 0) {
+    for (const child of nodes.children) {
+      const found = findNodeById(child, id);
+      child.parentNode = nodes;
+      if (found) {
+        return found; // Node found in children, return it.
+      }
+    }
+  }
+
+  // Node not found in this branch of the hierarchy.
+  return undefined;
+};
+
 function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
+  const { token, nodeId, fileId, startingPointNodeId } = useFigmaContext();
   if (!layoutData) return <></>;
-  const rootNode = layoutData.nodes[Object.keys(layoutData.nodes)[0]].document;
+  // const [currentNodeId, setCurrentNodeId] = useState(layoutData.rootNodeId);
+
+  // const rootNode = layoutData.nodes[
+  //   Object.keys(layoutData.nodes)[0]
+  // ].document.children.find((node) => node.id === layoutData.rootNodeId);
+  const allNodes = layoutData.document;
+  // const rootNode = findNodeById(allNodes, layoutData.rootNodeId);
+  // const firstNodeId = (allNodes.type=="CANVAS") ? allNodes.children[0] :layoutData.rootNodeId
+  const [rootNode, setRootNode] = useState(
+    findNodeById(allNodes, layoutData.rootNodeId)
+  );
+
+  const prototypeActions = {
+    onClick: () => {
+      // console.log(currentNodeId);
+      const currentNode = findNodeById(allNodes, rootNode.id);
+      const currentNodeIndex = currentNode.parentNode.children.findIndex(
+        (node) => node.id == rootNode.id
+      );
+      let newId;
+      if (currentNodeIndex == currentNode.parentNode.children.length - 1) {
+        newId = currentNode.parentNode.children[0].id;
+      } else {
+        newId = currentNode.parentNode.children[currentNodeIndex + 1].id;
+      }
+      // setCurrentNodeId(newId);
+      setRootNode(findNodeById(allNodes, newId));
+      // setCurrentNodeId("10:299");
+    },
+  };
+
+  if (rootNode?.type !== "FRAME") {
+    return <></>;
+  }
 
   // // Turn layout JSON into TSX
   useEffect(() => {
@@ -240,8 +352,8 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
     } else {
       sceneString += `return (<Root
         pixelSize={0.01}
-        sizeX={${rootNode.absoluteBoundingBox.width / 100}}
-        sizeY={${rootNode.absoluteBoundingBox.height / 100}}
+        sizeX={${rootNode.absoluteBoundingBox?.width / 100}}
+        sizeY={${rootNode.absoluteBoundingBox?.height / 100}}
       >
         ${layoutText}
       </Root>`;
@@ -261,6 +373,7 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
         width={"100%"}
         height={"100%"}
         overflow="scroll"
+        {...prototypeActions}
       />
       // </Fullscreen>
     );
@@ -272,38 +385,11 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
           sizeX={rootNode.absoluteBoundingBox.width / 100}
           sizeY={rootNode.absoluteBoundingBox.height / 100}
         >
-          {/* <Container
-            {...{
-              type: "FRAME",
-              borderRadius: 28,
-              x: 222,
-              y: -974,
-              width: 439,
-              height: 363,
-              positionType: "absolute",
-              positionTop: 0,
-              positionLeft: 0,
-            }}
-          >
-            {
-              <Container
-                {...{
-                  backgroundOpacity: 1,
-                  borderRadius: 28,
-                  backgroundColor: "rgba(255, 0, 0, 1)",
-                }}
-              >
-                {
-                  <Container
-                    key={"Layout Test"}
-                    {...{ type: "FRAME" }}
-                    {...{ width: "100%", height: "100%", overflow: "scroll" }}
-                  ></Container>
-                }
-              </Container>
-            }
-          </Container> */}
-          <FigmaLayer node={rootNode} layoutData={layoutData} />
+          <FigmaLayer
+            node={rootNode}
+            layoutData={layoutData}
+            {...prototypeActions}
+          />
         </Root>
         <Environment background blur={1} preset="city" />
       </>

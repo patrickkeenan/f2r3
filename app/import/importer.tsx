@@ -9,9 +9,15 @@ export default function ImporterPage({ token, ...props }) {
   const searchParams = useSearchParams();
   const fileId = searchParams.get("fileId");
   const nodeId = searchParams.get("nodeId");
+  const startingPointNodeId = searchParams.get("startingPointNodeId");
 
   return (
-    <FigmaProvider token={token} fileId={fileId} nodeId={nodeId}>
+    <FigmaProvider
+      token={token}
+      fileId={fileId}
+      nodeId={nodeId}
+      startingPointNodeId={startingPointNodeId}
+    >
       <Preview />
     </FigmaProvider>
   );
