@@ -3,11 +3,6 @@ import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import {
-  Environment,
-  MeshPortalMaterial,
-  OrbitControls,
-} from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import {
   Root,
@@ -24,6 +19,7 @@ import { noEvents, XWebPointers } from "@coconut-xr/xinteraction/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import EditorView from "./editor";
 import { Color } from "three";
+import PKCanvas from "../components/pk/PKCanvas";
 // import { staticLayoutData } from "./layoutData";
 
 export default function Preview({ ...props }) {
@@ -111,6 +107,7 @@ export default function Preview({ ...props }) {
 
           // Get images for each layer that needs it
           const imagesUrl = `https://api.figma.com/v1/files/${fileId}/images`;
+          console.log("requesting images", imagesUrl);
           fetch(imagesUrl, {
             headers: {
               // "X-FIGMA-TOKEN": token,
@@ -119,8 +116,9 @@ export default function Preview({ ...props }) {
           })
             .then((response) => response.json())
             .then(async (imageData) => {
+              console.log("imageData", imageData);
               jsonData.fileId = fileId;
-              jsonData.images = imageData.meta.images;
+              jsonData.images = imageData?.meta?.images || [];
               jsonData.layersByName = groupedLayersByName;
 
               fetchLayoutImages(jsonData, fileId);
@@ -209,7 +207,7 @@ export default function Preview({ ...props }) {
   return (
     <PanelGroup direction="vertical">
       <Panel maxSize={90} defaultSize={75}>
-        <Canvas
+        <PKCanvas
           events={noEvents}
           style={{ height: "100%", touchAction: "none" }}
           gl={{ localClippingEnabled: true }}
@@ -223,7 +221,6 @@ export default function Preview({ ...props }) {
                 <meshBasicMaterial color="#f09" />
                 <sphereGeometry />
               </mesh>
-              <OrbitControls />
             </>
           )}
           <Fullscreen>
@@ -252,10 +249,9 @@ export default function Preview({ ...props }) {
                 isFullscreen={fullscreen}
                 handleStringOutput={(str) => setLayoutTsxString(str)}
               />
-              <OrbitControls />
             </>
           )}
-        </Canvas>
+        </PKCanvas>
       </Panel>
 
       {showEditor && (
@@ -310,22 +306,47 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
     findNodeById(allNodes, layoutData.rootNodeId)
   );
 
-  const prototypeActions = {
-    onClick: () => {
-      // console.log(currentNodeId);
-      const currentNode = findNodeById(allNodes, rootNode.id);
-      const currentNodeIndex = currentNode.parentNode.children.findIndex(
-        (node) => node.id == rootNode.id
+  const linkToNodeId = (nodeId) => {
+    const nextNode = findNodeById(allNodes, nodeId);
+    if (nextNode) {
+      setRootNode(nextNode);
+    }
+  };
+  const linkToNodeIncrement = (increment) => {
+    const currentNode = findNodeById(allNodes, rootNode.id);
+    const currentNodeIndex = currentNode.parentNode.children.findIndex(
+      (node) => node.id == rootNode.id
+    );
+    if (
+      currentNodeIndex + increment >=
+      currentNode.parentNode.children.length
+    ) {
+      setRootNode(currentNode.parentNode.children[0]);
+    } else if (currentNodeIndex + increment < 0) {
+      setRootNode(
+        currentNode.parentNode.children[
+          currentNode.parentNode.children.length - 1
+        ]
       );
-      let newId;
-      if (currentNodeIndex == currentNode.parentNode.children.length - 1) {
-        newId = currentNode.parentNode.children[0].id;
-      } else {
-        newId = currentNode.parentNode.children[currentNodeIndex + 1].id;
-      }
-      // setCurrentNodeId(newId);
-      setRootNode(findNodeById(allNodes, newId));
-      // setCurrentNodeId("10:299");
+    } else {
+      setRootNode(
+        currentNode.parentNode.children[currentNodeIndex + increment]
+      );
+    }
+  };
+  const prototypeActions = {
+    onPointerUp: () => {
+      linkToNodeIncrement(1);
+      const actions = {
+        "Layer 1": {
+          click: {
+            link: "Layer 2",
+          },
+          hover: {
+            variant: "Hover",
+          },
+        },
+      };
     },
   };
 
@@ -391,7 +412,6 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
             {...prototypeActions}
           />
         </Root>
-        <Environment background blur={1} preset="city" />
       </>
     );
   }

@@ -1,19 +1,26 @@
 import { cookies } from "next/headers";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { permanentRedirect } from "next/navigation";
 
 export const dynamic = "force-dynamic"; // defaults to auto
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, response: NextResponse) {
   const cookieStore = cookies();
   const params = await request.nextUrl.searchParams;
-  // add in logic to check expiry
+
+  let paramString = ``;
+  if (params.get("fileId")) paramString += `&fileId=${params.get("fileId")}`;
+  if (params.get("nodeId")) paramString += `&nodeId=${params.get("nodeId")}`;
+  if (params.get("startingPointNodeId"))
+    paramString += `&startingPointNodeId=${params.get("startingPointNodeId")}`;
+
+  // TODO: add in logic to check expiry
   const existingToken = cookieStore.get("figmatoken");
-  console.log("existingToken", existingToken);
   if (existingToken) {
     return Response.json("redirect to import", {
       status: 302,
       headers: {
-        Location: "/import",
+        Location: "/import?" + paramString,
       },
     });
   }
@@ -23,14 +30,12 @@ export async function GET(request: NextRequest) {
     return Response.json("Set user token", {
       status: 302,
       headers: {
-        Location: "/import",
+        Location: "/import" + paramString,
         "Set-Cookie": `figmatoken=${personalToken}`,
       },
     });
   }
 
-  // const figmatoken=""
-  console.log(request.nextUrl.searchParams, process.env.NEXT_PUBLIC_SERVER_URL);
   const authCode = params.get("code");
 
   if (authCode) {

@@ -17,12 +17,20 @@ import {
   Code as CodeIcon,
   RotateCw as RotateCwIcon,
 } from "@react-three/uikit-lucide";
+
 import { Tabs, TabsButton } from "@/app/components/tabs";
 import { Button } from "@/app/components/button";
 import { Input } from "@/app/components/input";
 import { Card } from "@/app/components/card";
 import { Loading } from "@/app/components/loading";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/app/components/tooltip";
+
 import { useFigmaContext } from "@/app/auth/figmaTokenContext";
+import { useEnterXR } from "@coconut-xr/natuerlich/react";
 
 export default function UI({
   onSwitch,
@@ -33,6 +41,7 @@ export default function UI({
   const router = useRouter();
   const pathname = usePathname();
   const { token, nodeId, fileId } = useFigmaContext();
+  const [fileName, setFileName] = useState("");
   const [urlValid, setUrlValid] = useState(false);
   const [loadingHover, setLoadingHover] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -64,6 +73,7 @@ export default function UI({
     nodeId: string;
     fileId: string;
     startingPointNodeId: string;
+    fileName: string;
   } {
     console.log("parse", url);
     try {
@@ -74,6 +84,7 @@ export default function UI({
       const nodeId = searchParams.get("node-id");
       const startingPointNodeId = searchParams.get("starting-point-node-id");
       const fileId = urlObj.pathname.split("/")[2];
+      const fileName = urlObj.pathname.split("/")[3];
       // console.log(urlObj, urlObj.href.indexOf("https://www.figma.com/file"));
 
       if (
@@ -87,11 +98,24 @@ export default function UI({
           nodeId: nodeId?.replace("-", ":") ?? "",
           fileId: fileId ?? "",
           startingPointNodeId: startingPointNodeId ?? "",
+          fileName: fileName,
         };
       }
-      return { valid: false, nodeId: "", fileId: "", startingPointNodeId: "" };
+      return {
+        valid: false,
+        nodeId: "",
+        fileId: "",
+        fileName: "",
+        startingPointNodeId: "",
+      };
     } catch (e) {
-      return { valid: false, nodeId: "", fileId: "", startingPointNodeId: "" };
+      return {
+        valid: false,
+        nodeId: "",
+        fileId: "",
+        fileName: "",
+        startingPointNodeId: "",
+      };
     }
   }
   function resetUrl() {
@@ -105,16 +129,49 @@ export default function UI({
   //   resetUrl();
   // }, []);
   useEffect(() => {
-    const { valid, nodeId, fileId } = parseFigmaUrl(frameUrl);
+    const { valid, nodeId, fileId, fileName } = parseFigmaUrl(frameUrl);
     if (valid) {
       // router.push(`${pathname}?nodeId=${nodeId}&fileId=${fileId}`);
       setUrlValid(true);
+      setFileName(fileName);
+    } else {
+      setUrlValid(false);
+      setFileName("");
     }
   }, [frameUrl]);
 
   useEffect(() => {
     onSwitch(isFullscreen);
   }, [isFullscreen]);
+
+  const sessionOptions = {
+    requiredFeatures: [
+      "hit-test",
+      "plane-detection",
+      "anchors",
+      "hand-tracking",
+      "local-floor",
+      // "layers",
+    ],
+  };
+  const enterAR = useEnterXR("immersive-ar", sessionOptions);
+  const [isQuest, setIsQuest] = useState("");
+  const [devicePixelRatio, setDevicePixelRatio] = useState(1);
+  useEffect(() => {
+    const xr = (navigator as any)?.xr as XRSystem;
+    setDevicePixelRatio(window.devicePixelRatio);
+    if (!xr) {
+      setIsQuest("notQuest");
+    } else {
+      xr.isSessionSupported("immersive-vr").then((isSupported) => {
+        if (isSupported) {
+          setIsQuest("quest");
+        } else {
+          setIsQuest("notQuest");
+        }
+      });
+    }
+  }, []);
 
   return (
     <DefaultProperties>
@@ -135,7 +192,7 @@ export default function UI({
             {!token && (
               <Button
                 variant="pill"
-                onClick={() => {
+                onPointerUp={() => {
                   const authUrl = `https://www.figma.com/oauth?client_id=${process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_SERVER_URL}/auth&scope=files:read&state=abc&response_type=code`;
                   router.push(authUrl);
                 }}
@@ -147,19 +204,53 @@ export default function UI({
               <>
                 {!isLoaded && !nodeId && !fileId && (
                   <>
-                    <Container flexDirection="row" alignItems="stretch" gap={4}>
-                      <Input
-                        variant="pill"
-                        width={200}
-                        placeholder="https://"
-                        defaultValue=""
-                        value={frameUrl}
-                        onValueChange={(val) => setFrameUrl(val)}
-                      />
+                    <Container
+                      flexDirection="row"
+                      alignItems="stretch"
+                      gap={4}
+                      marginX={1}
+                    >
+                      {urlValid && (
+                        <Button
+                          variant="pill"
+                          backgroundColor={"#444"}
+                          hover={{ backgroundColor: "#444" }}
+                          backgroundOpacity={0.4}
+                          flexDirection={"row"}
+                        >
+                          <Text fontWeight={"normal"}>
+                            {fileName.replace(/-/g, " ")}
+                          </Text>
+                          <Button
+                            variant="icon"
+                            size="sm"
+                            marginRight={-16}
+                            marginLeft={8}
+                            selected={showEditor}
+                            onPointerUp={(e) => {
+                              console.log("test");
+                              setFrameUrl("");
+                              e.stopPropagation();
+                            }}
+                          >
+                            <XIcon height={16} width={16} />
+                          </Button>
+                        </Button>
+                      )}
+                      {!urlValid && (
+                        <Input
+                          variant="pill"
+                          width={200}
+                          placeholder="https://"
+                          defaultValue=""
+                          value={frameUrl}
+                          onValueChange={(val) => setFrameUrl(val)}
+                        />
+                      )}
                       <Button
                         variant="pill"
                         disabled={!urlValid}
-                        onClick={() => {
+                        onPointerUp={() => {
                           startLoading();
                         }}
                       >
@@ -173,7 +264,7 @@ export default function UI({
                   display={!isLoaded && nodeId && fileId ? "flex" : "none"}
                   padding={4}
                   onHoverChange={(v) => setLoadingHover(v)}
-                  onClick={() => {
+                  onPointerUp={() => {
                     resetUrl();
                   }}
                 >
@@ -184,17 +275,17 @@ export default function UI({
                 {isLoaded && (
                   // <Container key="toolbar" display={isLoaded ? "flex" : "none"}>
                   <>
-                    <Button
-                      variant="icon"
-                      size="sm"
+                    <MenuButton
+                      label={showEditor ? "Hide code" : "Show code"}
                       selected={showEditor}
-                      onClick={() => {
+                      onPointerUp={() => {
                         setShowEditor(!showEditor);
                         onToggleEditor(!showEditor);
                       }}
                     >
                       <CodeIcon height={16} width={16} />
-                    </Button>
+                    </MenuButton>
+
                     <Container
                       height={24}
                       width={1}
@@ -203,22 +294,48 @@ export default function UI({
                       borderLeft={1}
                       marginX={8}
                     />
-                    <Button
-                      variant="icon"
-                      size="sm"
+                    {isQuest == "quest" && (
+                      <MenuButton
+                        label={"Enter Immersive"}
+                        onPointerUp={enterAR}
+                      >
+                        <Text fontWeight={"bold"} fontSize={10}>
+                          VR
+                        </Text>
+                      </MenuButton>
+                    )}
+                    {isQuest !== "quest" && (
+                      <MenuButton
+                        label={"Enter Immersive"}
+                        onPointerUp={() => {
+                          // console.log(
+                          //   `https://hmd.link/${window.location.href}?token=${token}`
+                          // );
+                          window.open(
+                            `https://hmd.link/${window.location.href}?token=${token}`,
+                            "_blank"
+                          );
+                        }}
+                      >
+                        <Text fontWeight={"bold"} fontSize={10}>
+                          VR
+                        </Text>
+                      </MenuButton>
+                    )}
+                    <MenuButton
+                      label={"Fullscreen UI"}
                       selected={isFullscreen ? true : false}
-                      onClick={() => setIsFullscreen(true)}
+                      onPointerUp={() => setIsFullscreen(true)}
                     >
                       <FullscreenIcon height={16} width={16} />
-                    </Button>
-                    <Button
-                      variant="icon"
-                      size="sm"
+                    </MenuButton>
+                    <MenuButton
+                      label={"Floating UI"}
                       selected={isFullscreen ? false : true}
-                      onClick={() => setIsFullscreen(false)}
+                      onPointerUp={() => setIsFullscreen(false)}
                     >
                       <PIPIcon height={16} width={16} />
-                    </Button>
+                    </MenuButton>
                     <Container
                       height={24}
                       width={1}
@@ -227,24 +344,25 @@ export default function UI({
                       borderLeft={1}
                       marginX={8}
                     />
-                    <Button
-                      variant="icon"
-                      size="sm"
-                      onClick={() => {
+                    <MenuButton
+                      label={"Reload"}
+                      onPointerUp={() => {
                         window.location.reload();
                       }}
                     >
                       <RotateCwIcon height={16} width={16} />
-                    </Button>
-                    <Button
-                      variant="icon"
-                      size="sm"
-                      onClick={() => {
-                        resetUrl();
+                    </MenuButton>
+                    <MenuButton
+                      label={"Close"}
+                      onPointerUp={() => {
+                        const shouldReset = window.confirm(
+                          "Are you sure you want to exit?"
+                        );
+                        if (shouldReset) resetUrl();
                       }}
                     >
                       <XIcon height={16} width={16} />
-                    </Button>
+                    </MenuButton>
                     {/* </Container> */}
                   </>
                 )}
@@ -259,16 +377,37 @@ export default function UI({
   //   <div className={styles.tabBar}>
   //     <div
   //       className={`${styles.tabBarButton} ${fullscreen ? styles.tabBarButtonSelected : ""}`}
-  //       onClick={() => setFullscreen(true)}
+  //       onPointerUp={() => setFullscreen(true)}
   //     >
   //       <FrameCorners className={styles.icon} weight="fill" size={32} />
   //     </div>
   //     <div
   //       className={`${styles.tabBarButton} ${!fullscreen ? styles.tabBarButtonSelected : ""}`}
-  //       onClick={() => setFullscreen(false)}
+  //       onPointerUp={() => setFullscreen(false)}
   //     >
   //       <PictureInPicture className={styles.icon} weight="fill" size={32} />
   //     </div>
   //   </div>
   // );
+}
+
+function MenuButton({ children, label, ...props }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger>
+        <Button variant="icon" size="sm" {...props}>
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent
+        backgroundColor={"#000"}
+        backgroundOpacity={0.5}
+        borderOpacity={0.1}
+      >
+        <Text fontSize={12} fontWeight={"medium"} color="#fff">
+          {label}
+        </Text>
+      </TooltipContent>
+    </Tooltip>
+  );
 }
