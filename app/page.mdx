@@ -23,6 +23,7 @@ Todo
 - Make default import page with UI that explains how to use it
 - Turn the URL into a pill with a title if its valid
 - Make sure it all works in Headset, add a headset link that adds the token hmd.link/url
+- Add loading text to spinner to explain what its doing
 
 # Todo
 
@@ -30,12 +31,16 @@ Todo
   - Add a way to rasterize layers “\*”
   - Add a way to link to layers: to=Layer Name
   - Get images at 2x
+  - Allow layer positioning, figure out a way to have multiple UIs at different locations
 - Support properties
   - Stroke/fill visibility
   - horizontalPadding/verticalPadding
   - layoutPositioning
   - rotation of layers
   - Different cornered border radius
+- XR
+  - Set camera and pixel size to match
+  - Allow locking: lock=hand, lock=head
 - Support types
   - VECTOR
 - Derrive z depth from invisible dropshadow Y property
@@ -66,3 +71,4 @@ Todo
 
 - Could you maintain a UIKit "kit" in figma and export components?
 - Could you make a symbol library for the existing "kits" and map those layers to proper components?
+  import { match } from "assert"

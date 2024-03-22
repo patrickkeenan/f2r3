@@ -22,6 +22,22 @@ import { Color } from "three";
 import PKCanvas from "../components/pk/PKCanvas";
 // import { staticLayoutData } from "./layoutData";
 
+const CONTAINER_NODE_TYPES = ["FRAME", "INSTANCE", "GROUP"];
+const RENDER_NODE_TYPES = [
+  ...CONTAINER_NODE_TYPES,
+  "IMAGE",
+  "TEXT",
+  "RECTANGLE",
+  "SECTION",
+  "VECTOR",
+  "BOOLEAN_OPERATION",
+  "STAR",
+  "LINE",
+  "ELLIPSE",
+  "REGULAR_POLYGON",
+];
+const TRAVERSE_NODE_TYPES = [...RENDER_NODE_TYPES, "CANVAS", "DOCUMENT"];
+
 export default function Preview({ ...props }) {
   // layoutData = staticLayoutData;
   // if (!layoutData) return <></>;
@@ -76,6 +92,9 @@ export default function Preview({ ...props }) {
           // const rootNodeId = startingPointNodeId ? startingPointNodeId : nodeId;
           console.log("jsonData", jsonData);
 
+          jsonData.document = addParentsAndSiblings(jsonData.document);
+          console.log("new doc", jsonData.document);
+
           const allNodes = jsonData.document;
 
           let rootNode = findNodeById(allNodes, nodeId);
@@ -88,9 +107,11 @@ export default function Preview({ ...props }) {
             while (currentNode.parentNode) {
               if (currentNode.parentNode.type === "CANVAS") {
                 pageNode = currentNode.parentNode;
+                break;
               }
               currentNode = currentNode.parentNode;
             }
+            console.log(rootNode, pageNode);
             jsonData.pageNodeId = pageNode.id;
           } else {
             jsonData.pageNodeId = rootNode.id;
@@ -161,7 +182,7 @@ export default function Preview({ ...props }) {
     // }
     const nodeIds = Object.keys(imagesByNodeId).join(",");
     // fetchImageByNodeId(nodeId);
-    const imagesUrl = `https://api.figma.com/v1/images/${fileId}?ids=${nodeIds}`;
+    const imagesUrl = `https://api.figma.com/v1/images/${fileId}?ids=${nodeIds}&scale=2`;
     // console.log("getting images", imagesUrl);
     fetch(imagesUrl, {
       headers: {
@@ -174,13 +195,49 @@ export default function Preview({ ...props }) {
         // console.log("got image data", imageData, imageSrc);
         // Add node with src
         // flatNodeImages[i] = imageSrc;
+        // jsonData.document = addParentsAndSiblings(jsonData.document);
+
         jsonData.flatNodeImages = imageData.images;
+        //   child.parentNode = nodes;
+        // child.nextSibling = nodes.children[i + 1];
+        // child.prevSibling = nodes.children[i - 1];
         setLayoutData(jsonData);
         // setLoaded(true);
       });
 
     return jsonData;
   };
+  const addParentsAndSiblings = (node, parentNode = null) => {
+    node.parentNode = parentNode;
+
+    if (node.children && node.children.length) {
+      const newChildren: null | any = [];
+      let prevChild: null | any = null;
+      for (let i = 0; i < node.children.length; i++) {
+        const child = node.children[i];
+        if (TRAVERSE_NODE_TYPES.indexOf(child.type) < 0) continue;
+
+        child.nextSibling = null;
+        if (prevChild) {
+          prevChild.nextSibling = child;
+        }
+        child.prevSibling = prevChild;
+        // child.nextSibling =
+        //   i < node.children.length - 1 ? node.children[i + 1] : null;
+        child.prevSibling = prevChild;
+
+        const newChild = addParentsAndSiblings(child, node);
+
+        newChildren.push(newChild);
+        prevChild = newChild;
+      }
+
+      node.children = newChildren;
+    }
+
+    return node;
+  };
+
   const checkLayerForImages = (node, imagesByNodeId, fileId) => {
     if (!node.fills) {
       // console.log("no fill", node);
@@ -188,8 +245,12 @@ export default function Preview({ ...props }) {
       const hasComplexFills = node.fills.some((fill) => fill.type !== "SOLID");
       if (hasComplexFills) {
         // console.log(node.id, hasComplexFills);
-        imagesByNodeId[node.id] = "blank";
+        imagesByNodeId[node.id] = true;
         // fetchImageByNodeId(node.id);
+      }
+      // Manual rasterize
+      if (node.name.indexOf("*") > -1) {
+        imagesByNodeId[node.id] = true;
       }
     }
     if (node.children) {
@@ -203,6 +264,11 @@ export default function Preview({ ...props }) {
     }
     return imagesByNodeId;
   };
+
+  const [incrementNode, setIncrementNode] = useState({
+    increment: 0,
+    at: Date.now(),
+  });
 
   return (
     <PanelGroup direction="vertical">
@@ -230,6 +296,10 @@ export default function Preview({ ...props }) {
                 // console.log("fullscreen", fullscreen);
                 setFullscreen(fullscreen);
               }}
+              onNavigate={(increment) => {
+                console.log("onNavigate", increment);
+                setIncrementNode({ increment, at: Date.now() });
+              }}
               onImport={() => console.log("import")}
               isLoaded={loaded}
               onToggleEditor={(val) => setShowEditor(val)}
@@ -238,6 +308,7 @@ export default function Preview({ ...props }) {
               <Scene
                 layoutData={layoutData}
                 isFullscreen={fullscreen}
+                incrementNode={incrementNode}
                 handleStringOutput={(str) => setLayoutTsxString(str)}
               />
             )}
@@ -247,6 +318,7 @@ export default function Preview({ ...props }) {
               <Scene
                 layoutData={layoutData}
                 isFullscreen={fullscreen}
+                incrementNode={incrementNode}
                 handleStringOutput={(str) => setLayoutTsxString(str)}
               />
             </>
@@ -278,9 +350,12 @@ const findNodeById = (nodes, id: string) => {
 
   // If the current node has children, recursively search in the children.
   if (nodes.children && nodes.children.length > 0) {
-    for (const child of nodes.children) {
+    for (let i = 0; i < nodes.children.length; i++) {
+      const child = nodes.children[i];
+      // child.parentNode = nodes;
       const found = findNodeById(child, id);
-      child.parentNode = nodes;
+      // child.nextSibling = nodes.children[i + 1];
+      // child.prevSibling = nodes.children[i - 1];
       if (found) {
         return found; // Node found in children, return it.
       }
@@ -291,10 +366,25 @@ const findNodeById = (nodes, id: string) => {
   return undefined;
 };
 
-function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
+function Scene({
+  isFullscreen,
+  incrementNode,
+  layoutData,
+  handleStringOutput,
+  ...props
+}) {
   const { token, nodeId, fileId, startingPointNodeId } = useFigmaContext();
   if (!layoutData) return <></>;
   // const [currentNodeId, setCurrentNodeId] = useState(layoutData.rootNodeId);
+  useEffect(() => {
+    if (incrementNode.increment > 0) {
+      console.log("go next");
+      linkToNextNode();
+    } else if (incrementNode.increment < 0) {
+      console.log("go prev");
+      linkToPrevNode();
+    }
+  }, [incrementNode]);
 
   // const rootNode = layoutData.nodes[
   //   Object.keys(layoutData.nodes)[0]
@@ -307,46 +397,65 @@ function Scene({ isFullscreen, layoutData, handleStringOutput, ...props }) {
   );
 
   const linkToNodeId = (nodeId) => {
-    const nextNode = findNodeById(allNodes, nodeId);
-    if (nextNode) {
-      setRootNode(nextNode);
+    const linkNode = findNodeById(allNodes, nodeId);
+    if (linkNode) {
+      setRootNode(linkNode);
     }
   };
-  const linkToNodeIncrement = (increment) => {
-    const currentNode = findNodeById(allNodes, rootNode.id);
-    const currentNodeIndex = currentNode.parentNode.children.findIndex(
-      (node) => node.id == rootNode.id
-    );
-    if (
-      currentNodeIndex + increment >=
-      currentNode.parentNode.children.length
-    ) {
-      setRootNode(currentNode.parentNode.children[0]);
-    } else if (currentNodeIndex + increment < 0) {
-      setRootNode(
-        currentNode.parentNode.children[
-          currentNode.parentNode.children.length - 1
-        ]
-      );
-    } else {
-      setRootNode(
-        currentNode.parentNode.children[currentNodeIndex + increment]
-      );
+  const linkToNextNode = () => {
+    console.log(rootNode.nextSibling);
+    if (rootNode.nextSibling?.type == "FRAME") {
+      setRootNode(rootNode.nextSibling);
     }
   };
+  const linkToPrevNode = () => {
+    if (rootNode.prevSibling) {
+      setRootNode(rootNode.prevSibling);
+    }
+  };
+
+  // const linkToNodeIncrement = (increment) => {
+  //   const currentNode = findNodeById(allNodes, rootNode.id);
+  //   const currentNodeIndex = currentNode.parentNode.children.findIndex(
+  //     (node) => node.id == rootNode.id
+  //   );
+  //   console.log(
+  //     increment,
+  //     currentNodeIndex,
+  //     currentNode.parentNode.children.length,
+  //     currentNode.nextSibling,
+  //     currentNode.prevSibling
+  //   );
+  //   // if (
+  //   //   currentNodeIndex + increment >=
+  //   //   currentNode.parentNode.children.length
+  //   // ) {
+  //   //   setRootNode(currentNode.parentNode.children[0]);
+  //   // } else if (currentNodeIndex + increment < 0) {
+  //   //   setRootNode(
+  //   //     currentNode.parentNode.children[
+  //   //       currentNode.parentNode.children.length - 1
+  //   //     ]
+  //   //   );
+  //   // } else {
+  //   //   setRootNode(
+  //   //     currentNode.parentNode.children[currentNodeIndex + increment]
+  //   //   );
+  //   // }
+  // };
   const prototypeActions = {
     onPointerUp: () => {
-      linkToNodeIncrement(1);
-      const actions = {
-        "Layer 1": {
-          click: {
-            link: "Layer 2",
-          },
-          hover: {
-            variant: "Hover",
-          },
-        },
-      };
+      // linkToNextNode();
+      // const actions = {
+      //   "Layer 1": {
+      //     click: {
+      //       link: "Layer 2",
+      //     },
+      //     hover: {
+      //       variant: "Hover",
+      //     },
+      //   },
+      // };
     },
   };
 
@@ -430,13 +539,16 @@ function FigmaLayer({
 
   let innerComponent;
 
-  // Could have children or fills
-  if (
-    node.type == "FRAME" ||
-    node.type == "IMAGE" ||
-    node.type == "RECTANGLE" ||
-    node.type == "GROUP"
-  ) {
+  // Could have children
+  if (node.name.indexOf("*") > -1) {
+    // Manual rasterize
+    innerComponent = (
+      <Image
+        src={layoutData.flatNodeImages[node.id]}
+        borderRadius={node.cornerRadius ? node.cornerRadius : 0}
+      ></Image>
+    );
+  } else if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
     // Child layers if there's children
     let nodeChildren = [];
     if (node.children) {
@@ -461,7 +573,7 @@ function FigmaLayer({
     // Fill layers if ther's' fills
     if (node.fills) {
       //   // For any gradient or image, we need to flatten them, and just have 1 background
-      node.fills.reverse().forEach((fill, i) => {
+      [...node.fills].reverse().forEach((fill, i) => {
         if (fill.type == "IMAGE") {
           innerComponent = (
             <Image
@@ -481,7 +593,7 @@ function FigmaLayer({
       });
     }
     if (node.strokes) {
-      node.strokes.reverse().forEach((stroke, i) => {
+      [...node.strokes].reverse().forEach((stroke, i) => {
         innerComponent = (
           <Container {...figStrokeProps(stroke, node, i)}>
             {innerComponent}
@@ -566,13 +678,8 @@ function figmaLayerText({
 
   let innerComponent;
 
-  // Could have children or fills
-  if (
-    node.type == "FRAME" ||
-    node.type == "IMAGE" ||
-    node.type == "RECTANGLE" ||
-    node.type == "GROUP"
-  ) {
+  // Could have children
+  if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
     // Child layers if there's children
     let nodeChildren = [];
     if (node.children) {
@@ -593,7 +700,7 @@ function figmaLayerText({
 
     // Fill layers if ther's' fills
     if (node.fills) {
-      node.fills.reverse().forEach((fill, i) => {
+      [...node.fills].reverse().forEach((fill, i) => {
         // const nodeFills = node.fills.map((fill, i) => {
         if (fill.type == "IMAGE") {
           innerComponent = `<Image {...${JSON.stringify(figFillProps(fill, node, i))}}
@@ -609,7 +716,7 @@ function figmaLayerText({
       });
     }
     if (node.strokes) {
-      node.strokes.reverse().forEach((stroke, i) => {
+      [...node.strokes].reverse().forEach((stroke, i) => {
         innerComponent = `<Container
         {...${JSON.stringify(figStrokeProps(stroke, node, i))}}
         >{${innerComponent}}</Container>`;

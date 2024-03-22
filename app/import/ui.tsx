@@ -16,6 +16,8 @@ import {
   X as XIcon,
   Code as CodeIcon,
   RotateCw as RotateCwIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronLeft as ChevronLeftIcon,
 } from "@react-three/uikit-lucide";
 
 import { Tabs, TabsButton } from "@/app/components/tabs";
@@ -34,6 +36,7 @@ import { useEnterXR } from "@coconut-xr/natuerlich/react";
 
 export default function UI({
   onSwitch,
+  onNavigate,
   onToggleEditor,
   isLoaded = false,
   ...props
@@ -286,14 +289,7 @@ export default function UI({
                       <CodeIcon height={16} width={16} />
                     </MenuButton>
 
-                    <Container
-                      height={24}
-                      width={1}
-                      borderColor={"#fff"}
-                      borderOpacity={0.2}
-                      borderLeft={1}
-                      marginX={8}
-                    />
+                    <MenuDivider />
                     {isQuest == "quest" && (
                       <MenuButton
                         label={"Enter Immersive"}
@@ -336,14 +332,25 @@ export default function UI({
                     >
                       <PIPIcon height={16} width={16} />
                     </MenuButton>
-                    <Container
-                      height={24}
-                      width={1}
-                      borderColor={"#fff"}
-                      borderOpacity={0.2}
-                      borderLeft={1}
-                      marginX={8}
-                    />
+                    <MenuDivider />
+                    <MenuButton
+                      label={"Previous"}
+                      onPointerUp={(e) => {
+                        onNavigate(-1);
+                        e.stopPropagation();
+                      }}
+                    >
+                      <ChevronLeftIcon height={16} width={16} />
+                    </MenuButton>
+                    <MenuButton
+                      label={"Next"}
+                      onPointerUp={(e) => {
+                        onNavigate(1);
+                        e.stopPropagation();
+                      }}
+                    >
+                      <ChevronRightIcon height={16} width={16} />
+                    </MenuButton>
                     <MenuButton
                       label={"Reload"}
                       onPointerUp={() => {
@@ -352,6 +359,7 @@ export default function UI({
                     >
                       <RotateCwIcon height={16} width={16} />
                     </MenuButton>
+                    <MenuDivider />
                     <MenuButton
                       label={"Close"}
                       onPointerUp={() => {
@@ -389,6 +397,19 @@ export default function UI({
   //     </div>
   //   </div>
   // );
+}
+
+function MenuDivider() {
+  return (
+    <Container
+      height={24}
+      width={1}
+      borderColor={"#fff"}
+      borderOpacity={0.2}
+      borderLeft={1}
+      marginX={8}
+    />
+  );
 }
 
 function MenuButton({ children, label, ...props }) {
