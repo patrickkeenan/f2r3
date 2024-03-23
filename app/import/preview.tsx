@@ -1,6 +1,6 @@
 "use client";
 import styles from "./styles.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { Canvas } from "@react-three/fiber";
@@ -11,6 +11,8 @@ import {
   Text,
   Image,
   Content,
+  DefaultProperties,
+  SuspendingImage,
 } from "@react-three/uikit";
 import { Button } from "@/app/components/button";
 import { FigmaProvider, useFigmaContext } from "../auth/figmaTokenContext";
@@ -36,7 +38,7 @@ const RENDER_NODE_TYPES = [
   "ELLIPSE",
   "REGULAR_POLYGON",
 ];
-const TRAVERSE_NODE_TYPES = [...RENDER_NODE_TYPES, "CANVAS", "DOCUMENT"];
+const TRAVERSE_NODE_TYPES = "FRAME"; // [...RENDER_NODE_TYPES, "CANVAS", "DOCUMENT"];
 
 export default function Preview({ ...props }) {
   // layoutData = staticLayoutData;
@@ -47,6 +49,18 @@ export default function Preview({ ...props }) {
   const [showEditor, setShowEditor] = useState(false);
 
   const [layoutData, setLayoutData] = useState<null | any>(null);
+  const [interactions, setInteractions] = useState({
+    actions123: {
+      hover: {
+        transformTranslateZ: 40,
+      },
+    },
+    Bottom123: {
+      hover: {
+        backgroundOpacity: 0,
+      },
+    },
+  });
   const [layoutTsxString, setLayoutTsxString] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [rootNode, setRootNode] = useState(null);
@@ -126,6 +140,22 @@ export default function Preview({ ...props }) {
 
           const groupedLayersByName = groupLayersByName(jsonData.document);
 
+          // User must put components in their file instead of this
+          // const componentSetIds = Object.keys(jsonData.componentSets);
+          // const componentIds = Object.keys(jsonData.components);
+          // const componentsUrl = `https://api.figma.com/v1/files/${fileId}/nodes?ids=${componentSetIds.join(",")},${componentIds.join(",")}`;
+          // console.log("requesting components", componentsUrl);
+          // fetch(componentsUrl, {
+          //   headers: {
+          //     // "X-FIGMA-TOKEN": token,
+          //     Authorization: `Bearer ${token}`,
+          //   },
+          // })
+          //   .then((response) => response.json())
+          //   .then(async (componentData) => {
+          //     console.log("componentData", componentData);
+          //     jsonData.componentData = componentData;
+
           // Get images for each layer that needs it
           const imagesUrl = `https://api.figma.com/v1/files/${fileId}/images`;
           console.log("requesting images", imagesUrl);
@@ -198,6 +228,9 @@ export default function Preview({ ...props }) {
         // jsonData.document = addParentsAndSiblings(jsonData.document);
 
         jsonData.flatNodeImages = imageData.images;
+
+        // For user controlled interactions
+        // jsonData.interaction ={}
         //   child.parentNode = nodes;
         // child.nextSibling = nodes.children[i + 1];
         // child.prevSibling = nodes.children[i - 1];
@@ -215,21 +248,20 @@ export default function Preview({ ...props }) {
       let prevChild: null | any = null;
       for (let i = 0; i < node.children.length; i++) {
         const child = node.children[i];
-        if (TRAVERSE_NODE_TYPES.indexOf(child.type) < 0) continue;
-
-        child.nextSibling = null;
-        if (prevChild) {
-          prevChild.nextSibling = child;
+        let newChild;
+        newChild = addParentsAndSiblings(child, node);
+        if (TRAVERSE_NODE_TYPES.indexOf(child.type) > 0) {
+          child.nextSibling = null;
+          if (prevChild) {
+            prevChild.nextSibling = child;
+          }
+          child.prevSibling = prevChild;
+          child.prevSibling = prevChild;
+          prevChild = newChild;
+        } else {
         }
-        child.prevSibling = prevChild;
-        // child.nextSibling =
-        //   i < node.children.length - 1 ? node.children[i + 1] : null;
-        child.prevSibling = prevChild;
-
-        const newChild = addParentsAndSiblings(child, node);
 
         newChildren.push(newChild);
-        prevChild = newChild;
       }
 
       node.children = newChildren;
@@ -278,7 +310,6 @@ export default function Preview({ ...props }) {
           style={{ height: "100%", touchAction: "none" }}
           gl={{ localClippingEnabled: true }}
         >
-          <XWebPointers />
           <ambientLight intensity={0.5} />
           <directionalLight intensity={1} position={[-5, 5, 10]} />
           {!hasScene && (
@@ -305,21 +336,28 @@ export default function Preview({ ...props }) {
               onToggleEditor={(val) => setShowEditor(val)}
             />
             {fullscreen && (
-              <Scene
-                layoutData={layoutData}
-                isFullscreen={fullscreen}
-                incrementNode={incrementNode}
-                handleStringOutput={(str) => setLayoutTsxString(str)}
-              />
+              <DefaultProperties backgroundOpacity={0}>
+                <Scene
+                  layoutData={layoutData}
+                  interactions={interactions}
+                  isFullscreen={fullscreen}
+                  incrementNode={incrementNode}
+                  handleStringOutput={(str) => setLayoutTsxString(str)}
+                />
+              </DefaultProperties>
             )}
           </Fullscreen>
           {!fullscreen && (
             <>
               <Scene
                 layoutData={layoutData}
+                interactions={interactions}
                 isFullscreen={fullscreen}
                 incrementNode={incrementNode}
-                handleStringOutput={(str) => setLayoutTsxString(str)}
+                handleStringOutput={(str) => {
+                  // console.log(str);
+                  setLayoutTsxString(str);
+                }}
               />
             </>
           )}
@@ -334,6 +372,15 @@ export default function Preview({ ...props }) {
               layoutData={layoutData}
               layoutTsxString={layoutTsxString}
               isFullscreen={fullscreen}
+              interactions={interactions}
+              onInteractionUpdate={(interactionJson) => {
+                console.log(
+                  "new interactions",
+                  interactionJson,
+                  JSON.parse(interactionJson)
+                );
+                setInteractions(JSON.parse(interactionJson));
+              }}
             />
           </Panel>
         </>
@@ -370,6 +417,7 @@ function Scene({
   isFullscreen,
   incrementNode,
   layoutData,
+  interactions,
   handleStringOutput,
   ...props
 }) {
@@ -403,7 +451,7 @@ function Scene({
     }
   };
   const linkToNextNode = () => {
-    console.log(rootNode.nextSibling);
+    console.log(rootNode, rootNode.nextSibling);
     if (rootNode.nextSibling?.type == "FRAME") {
       setRootNode(rootNode.nextSibling);
     }
@@ -500,6 +548,7 @@ function Scene({
       <FigmaLayer
         node={rootNode}
         layoutData={layoutData}
+        interactions={interactions}
         width={"100%"}
         height={"100%"}
         overflow="scroll"
@@ -518,6 +567,7 @@ function Scene({
           <FigmaLayer
             node={rootNode}
             layoutData={layoutData}
+            interactions={interactions}
             {...prototypeActions}
           />
         </Root>
@@ -529,9 +579,11 @@ function Scene({
 function FigmaLayer({
   node,
   parentNode = null,
-  layoutData = { images: {}, flatNodeImages: {} },
+  layoutData = { document: {}, images: {}, components: {}, flatNodeImages: {} },
+  interactions,
   ...props
 }) {
+  const [isHovering, setIsHovering] = useState(false);
   const propsFromNode = figProps(node, parentNode);
   const innerPropsFromNode = figInnerProps(node, parentNode);
 
@@ -543,12 +595,30 @@ function FigmaLayer({
   if (node.name.indexOf("*") > -1) {
     // Manual rasterize
     innerComponent = (
-      <Image
-        src={layoutData.flatNodeImages[node.id]}
-        borderRadius={node.cornerRadius ? node.cornerRadius : 0}
-      ></Image>
+      <Suspense>
+        <SuspendingImage
+          src={layoutData.flatNodeImages[node.id]}
+          borderRadius={node.cornerRadius ? node.cornerRadius : 0}
+        />
+      </Suspense>
     );
   } else if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
+    if (node.type == "INSTANCE") {
+      const componentSet = findNodeById(
+        layoutData.document,
+        layoutData.components[node.componentId].componentSetId
+      );
+      if (componentSet) {
+        const hoverVariant = componentSet.children.find(
+          (variant) => variant.name.toLowerCase().indexOf("=hover") > -1
+        );
+        if (hoverVariant && isHovering) {
+          console.log(hoverVariant);
+          node = hoverVariant;
+        }
+      }
+    }
+
     // Child layers if there's children
     let nodeChildren = [];
     if (node.children) {
@@ -559,6 +629,7 @@ function FigmaLayer({
             node={childNode}
             parentNode={node}
             layoutData={layoutData}
+            interactions={interactions}
           />
         );
       });
@@ -576,12 +647,18 @@ function FigmaLayer({
       [...node.fills].reverse().forEach((fill, i) => {
         if (fill.type == "IMAGE") {
           innerComponent = (
-            <Image
-              {...figFillProps(fill, node, i)}
-              {...figImageProps(fill, node, layoutData.flatNodeImages[node.id])}
-            >
-              {innerComponent}
-            </Image>
+            <Suspense>
+              <SuspendingImage
+                {...figFillProps(fill, node, i)}
+                {...figImageProps(
+                  fill,
+                  node,
+                  layoutData.flatNodeImages[node.id]
+                )}
+              >
+                {innerComponent}
+              </SuspendingImage>
+            </Suspense>
           );
         } else {
           innerComponent = (
@@ -618,9 +695,17 @@ function FigmaLayer({
 
   // console.log("figprops", node.name, propsFromNode);
   // {node.type == "TEXT" && <Text>{node.characters}</Text>}
+  if (interactions[node.name]) {
+    console.log("node has interactions", interactions, interactions[node.name]);
+  }
 
   return (
-    <Container {...propsFromNode} {...props}>
+    <Container
+      {...propsFromNode}
+      {...props}
+      onHoverChange={(h) => setIsHovering(h)}
+      {...(interactions[node.name] ? interactions[node.name] : {})}
+    >
       {innerComponent}
     </Container>
   );
