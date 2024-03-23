@@ -22,6 +22,8 @@ export const colors = {
   cardForeground: hsl(0, 0, 100),
   accent: hsl(210, 100, 52),
   accentForeground: hsl(0, 0, 100),
+  popover: hsl(0, 0, 0),
+  popoverForeground: hsl(0, 0, 100),
 };
 
 export function Defaults(
