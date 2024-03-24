@@ -10,13 +10,13 @@ import {
 import { Canvas } from "@react-three/fiber";
 import { Root, Fullscreen, Container, Text, Content } from "@react-three/uikit";
 import Scene from "./scene";
-import { Button } from "@/app/components/button";
+import { Button } from "@/src/components/button";
 import {
   PictureInPicture2,
   Fullscreen as FullscreenIcon,
 } from "@react-three/uikit-lucide";
-import { Card } from "@/app/components/card";
-import { Tabs, TabsButton } from "@/app/components/tabs";
+import { Card } from "@/src/components/card";
+import { Tabs, TabsButton } from "@/src/components/tabs";
 
 export default function Preview() {
   const [fullscreen, setFullscreen] = useState(false);

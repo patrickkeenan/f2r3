@@ -48,6 +48,7 @@ const sessionOptions = {
 };
 
 export default function PKCanvas({
+  isFullscreen = false,
   includeCameras = true,
   title = "[No Title]",
   children,
@@ -234,7 +235,7 @@ export default function PKCanvas({
         )} */}
 
         <SessionModeGuard deny="immersive-ar">
-          <OrbitControls />
+          {!isFullscreen && <OrbitControls />}
           <Suspense>
             <Environment background blur={1} preset="city" />
           </Suspense>

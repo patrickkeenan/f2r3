@@ -20,16 +20,16 @@ import {
   ChevronLeft as ChevronLeftIcon,
 } from "@react-three/uikit-lucide";
 
-import { Tabs, TabsButton } from "@/app/components/tabs";
-import { Button } from "@/app/components/button";
-import { Input } from "@/app/components/input";
-import { Card } from "@/app/components/card";
-import { Loading } from "@/app/components/loading";
+import { Tabs, TabsButton } from "@/src/components/tabs";
+import { Button } from "@/src/components/button";
+import { Input } from "@/src/components/input";
+import { Card } from "@/src/components/card";
+import { Loading } from "@/src/components/loading";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/app/components/tooltip";
+} from "@/src/components/tooltip";
 
 import { useFigmaContext } from "@/app/auth/figmaTokenContext";
 import { useEnterXR } from "@coconut-xr/natuerlich/react";
@@ -39,6 +39,7 @@ export default function UI({
   onNavigate,
   onToggleEditor,
   isLoaded = false,
+  loadingStatus = "",
   ...props
 }) {
   const router = useRouter();
@@ -263,17 +264,22 @@ export default function UI({
                   </>
                 )}
 
-                <Container
-                  display={!isLoaded && nodeId && fileId ? "flex" : "none"}
-                  padding={4}
-                  onHoverChange={(v) => setLoadingHover(v)}
-                  onPointerUp={() => {
-                    resetUrl();
-                  }}
-                >
-                  {loadingHover && <XIcon height={28} width={28} />}
-                  {!loadingHover && <Loading size="md" />}
-                </Container>
+                {!isLoaded && nodeId && fileId && (
+                  <Container
+                    padding={4}
+                    onHoverChange={(v) => setLoadingHover(v)}
+                    onPointerUp={() => {
+                      resetUrl();
+                    }}
+                    flexDirection={"row"}
+                  >
+                    {loadingHover && <XIcon height={28} width={28} />}
+                    {!loadingHover && <Loading size="md" />}
+                    <Text fontSize={14} alignSelf={"center"} paddingLeft={20}>
+                      {loadingStatus}
+                    </Text>
+                  </Container>
+                )}
 
                 {isLoaded && (
                   // <Container key="toolbar" display={isLoaded ? "flex" : "none"}>

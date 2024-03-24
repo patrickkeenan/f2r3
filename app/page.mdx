@@ -15,6 +15,8 @@
 - Round corners (images do not get their corners cropped)
 - Rasterize images
 - To use variants, all states must be in the file you're exporting
+- Use an invisible drop shadow, the Y offset will become the z offset
+- Layer rotation is not supported
 
 # Finishing
 
@@ -28,29 +30,24 @@ Todo
 
 # Todo
 
-- Control
-  - Add a way to rasterize layers “\*”
-  - Add a way to link to layers: to=Layer Name
-  - Get images at 2x
-  - Allow layer positioning, figure out a way to have multiple UIs at different locations
-- Support properties
-  - Stroke/fill visibility
-  - horizontalPadding/verticalPadding
-  - layoutPositioning
-  - rotation of layers
-  - Different cornered border radius
+# Must fix
+
+- Add animation to interaction changes
 - XR
   - Set camera and pixel size to match
-  - Allow locking: lock=hand, lock=head
-- Support types
-  - VECTOR
-- Derrive z depth from invisible dropshadow Y property
-- Add some kind of flow support
-- Figure out COMPONENT, INSTANCE
-  - Add hover/press actions
 
 # Lower priority
 
+- Interaction
+  - Add focus as a state to watch for
+- Control
+  - Allow layer positioning, figure out a way to have multiple UIs at different locations
+  - Allow locking: lock=hand, lock=head
+- Support properties
+  - rotation of layers
+  - absolute layoutPositioning in auto layout layers
+- Support types
+  - VECTOR
 - Hyperlink
 - Add wrapping support
 - Add grid support
@@ -72,4 +69,3 @@ Todo
 
 - Could you maintain a UIKit "kit" in figma and export components?
 - Could you make a symbol library for the existing "kits" and map those layers to proper components?
-  import { match } from "assert"
