@@ -286,7 +286,7 @@ export default function Preview({ ...props }) {
     const hasComplexStrokes = node.strokes?.some(
       (stroke) => stroke.type !== "SOLID"
     );
-    console.log(node.name, hasComplexStrokes, hasComplexFills, node.fills);
+    // console.log(node.name, hasComplexStrokes, hasComplexFills, node.fills);
 
     if (!FEATURE_TESTS.vectors && node.type == "VECTOR") {
       imagesByNodeId[node.id] = true;
@@ -602,7 +602,6 @@ function FigmaLayer({
           (variant) => variant.name.toLowerCase().indexOf("=hover") > -1
         );
         if (hoverVariant && isHovering) {
-          // console.log(hoverVariant);
           node = hoverVariant;
         }
       }
