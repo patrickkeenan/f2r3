@@ -111,8 +111,8 @@ export default function PKCanvas({
         {...rest}
       >
         <color args={[0]} attach="background" />
-        <directionalLight position={[-2, 2, 2]} intensity={0.8} />
-        <pointLight position={[-2, 2, 2]} intensity={0.8} />
+        {/* <directionalLight position={[-2, 2, 2]} intensity={0.8} />
+        <pointLight position={[-2, 2, 2]} intensity={0.8} /> */}
 
         {/* {includeCameras && (
           <NonImmersiveCamera position={[0, 0, 0]}>
