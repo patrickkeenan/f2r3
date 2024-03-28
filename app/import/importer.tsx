@@ -12,9 +12,9 @@ export default function ImporterPage({ token, ...props }) {
   const startingPointNodeId = searchParams.get("startingPointNodeId");
 
   const getToken = searchParams.get("token");
-  console.log("getToken", getToken);
+  // console.log("getToken", getToken);
   if (getToken) {
-    console.log("getToken", getToken);
+    // console.log("getToken", getToken);
     let redirectUrl = `/auth?personalToken=${getToken}`;
     if (fileId) redirectUrl += `&fileId=${fileId}`;
     if (nodeId) redirectUrl += `&nodeId=${nodeId}`;

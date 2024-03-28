@@ -136,8 +136,8 @@ export default function PKCanvas({
             </Root>
           </NonImmersiveCamera>
         )} */}
-
-        {/* {includeCameras && (
+        {/* <ImmersiveSessionOrigin position={[0, 0, 1.5]}></ImmersiveSessionOrigin> */}
+        {includeCameras && (
           <ImmersiveSessionOrigin
             position={[0, 0, 0]}
             cameraContent={
@@ -226,13 +226,13 @@ export default function PKCanvas({
               }}
             />
             <Hands
-            modelLeft="hand-left.gltf"
-            modelRight="hand-right.gltf"
-            rayMaterial={{ color: "blue" }}
-          />
+            // modelLeft="hand-left.gltf"
+            // modelRight="hand-right.gltf"
+            // rayMaterial={{ color: "blue" }}
+            />
             <HandGestureLayer />
           </ImmersiveSessionOrigin>
-        )} */}
+        )}
 
         <SessionModeGuard deny="immersive-ar">
           {!isFullscreen && <OrbitControls />}
@@ -240,7 +240,6 @@ export default function PKCanvas({
             <Environment background blur={1} preset="city" />
           </Suspense>
         </SessionModeGuard>
-
         {children}
       </XRCanvas>
 

@@ -20,6 +20,8 @@ import {
   ChevronLeft as ChevronLeftIcon,
 } from "@react-three/uikit-lucide";
 
+import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
+
 import { Tabs, TabsButton } from "@/src/components/tabs";
 import { Button } from "@/src/components/button";
 import { Input } from "@/src/components/input";
@@ -45,6 +47,10 @@ export default function UI({
   const router = useRouter();
   const pathname = usePathname();
   const { token, nodeId, fileId } = useFigmaContext();
+
+  const xrState = useXR.getState();
+  const isAR = xrState.mode === "immersive-ar";
+
   const [fileName, setFileName] = useState("");
   const [urlValid, setUrlValid] = useState(false);
   const [loadingHover, setLoadingHover] = useState(false);
@@ -79,7 +85,7 @@ export default function UI({
     startingPointNodeId: string;
     fileName: string;
   } {
-    console.log("parse", url);
+    // console.log("parse", url);
     try {
       // https://www.fima.com/file/qGDiNCmTVCTuBdAoMyMXc4/UIKit-Figma-logo?type=design&node-id=85-10&mode=design&t=UFGGXh4iR0u2sB9B-11
       const urlObj = new URL(url);
@@ -159,11 +165,10 @@ export default function UI({
     ],
   };
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
+  const [currentXRSession, setCurrentXRSession] = useState(null);
   const [isQuest, setIsQuest] = useState("");
-  const [devicePixelRatio, setDevicePixelRatio] = useState(1);
   useEffect(() => {
     const xr = (navigator as any)?.xr as XRSystem;
-    setDevicePixelRatio(window.devicePixelRatio);
     if (!xr) {
       setIsQuest("notQuest");
     } else {
@@ -176,6 +181,7 @@ export default function UI({
       });
     }
   }, []);
+  // console.log(isAR, isQuest);
 
   return (
     <DefaultProperties>
@@ -187,203 +193,232 @@ export default function UI({
         alignItems={"flex-start"}
         zIndexOffset={500}
       >
-        <Container positionLeft={"-50%"}>
-          <Card
-            flexDirection="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            {!token && (
-              <Button
-                variant="pill"
-                onPointerUp={() => {
-                  const authUrl = `https://www.figma.com/oauth?client_id=${process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_SERVER_URL}/auth&scope=files:read&state=abc&response_type=code`;
-                  router.push(authUrl);
-                }}
-              >
-                <Text fontWeight={"medium"}>Login with Figma</Text>
+        {/* AR UI if needed */}
+        {/* {isAR && (
+          <Container positionLeft={"-50%"} positionBottom={200}>
+            <Card
+              flexDirection="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Button variant="pill" onPointerUp={() => {}}>
+                <Text fontWeight={"medium"}>Test</Text>
               </Button>
-            )}
-            {token && (
-              <>
-                {!isLoaded && !nodeId && !fileId && (
+            </Card>
+          </Container>
+        )} */}
+        {!isAR && (
+          <Container positionLeft={"-50%"}>
+            {isQuest !== "quest" && (
+              <Card
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                {!token && (
+                  <Button
+                    variant="pill"
+                    onPointerUp={() => {
+                      const authUrl = `https://www.figma.com/oauth?client_id=${process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_SERVER_URL}/auth&scope=files:read&state=abc&response_type=code`;
+                      router.push(authUrl);
+                    }}
+                  >
+                    <Text fontWeight={"medium"}>Login with Figma</Text>
+                  </Button>
+                )}
+                {token && (
                   <>
-                    <Container
-                      flexDirection="row"
-                      alignItems="stretch"
-                      gap={4}
-                      marginX={1}
-                    >
-                      {urlValid && (
-                        <Button
-                          variant="pill"
-                          backgroundColor={"#444"}
-                          hover={{ backgroundColor: "#444" }}
-                          backgroundOpacity={0.4}
-                          flexDirection={"row"}
+                    {!isLoaded && !nodeId && !fileId && (
+                      <>
+                        <Container
+                          flexDirection="row"
+                          alignItems="stretch"
+                          gap={4}
+                          marginX={1}
                         >
-                          <Text fontWeight={"normal"}>
-                            {fileName.replace(/-/g, " ")}
-                          </Text>
+                          {urlValid && (
+                            <Button
+                              variant="pill"
+                              backgroundColor={"#444"}
+                              hover={{ backgroundColor: "#444" }}
+                              backgroundOpacity={0.4}
+                              flexDirection={"row"}
+                            >
+                              <Text fontWeight={"normal"}>
+                                {fileName.replace(/-/g, " ")}
+                              </Text>
+                              <Button
+                                variant="icon"
+                                size="sm"
+                                marginRight={-16}
+                                marginLeft={8}
+                                selected={showEditor}
+                                onPointerUp={(e) => {
+                                  // console.log("test");
+                                  setFrameUrl("");
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <XIcon height={16} width={16} />
+                              </Button>
+                            </Button>
+                          )}
+                          {!urlValid && (
+                            <Input
+                              variant="pill"
+                              width={200}
+                              placeholder="https://"
+                              defaultValue=""
+                              value={frameUrl}
+                              onValueChange={(val) => setFrameUrl(val)}
+                            />
+                          )}
                           <Button
-                            variant="icon"
-                            size="sm"
-                            marginRight={-16}
-                            marginLeft={8}
-                            selected={showEditor}
-                            onPointerUp={(e) => {
-                              console.log("test");
-                              setFrameUrl("");
-                              e.stopPropagation();
+                            variant="pill"
+                            disabled={!urlValid}
+                            onPointerUp={() => {
+                              startLoading();
                             }}
                           >
-                            <XIcon height={16} width={16} />
+                            <Text fontWeight={"medium"}>Import</Text>
                           </Button>
-                        </Button>
-                      )}
-                      {!urlValid && (
-                        <Input
-                          variant="pill"
-                          width={200}
-                          placeholder="https://"
-                          defaultValue=""
-                          value={frameUrl}
-                          onValueChange={(val) => setFrameUrl(val)}
-                        />
-                      )}
-                      <Button
-                        variant="pill"
-                        disabled={!urlValid}
+                        </Container>
+                      </>
+                    )}
+
+                    {!isLoaded && nodeId && fileId && (
+                      <Container
+                        padding={4}
+                        onHoverChange={(v) => setLoadingHover(v)}
                         onPointerUp={() => {
-                          startLoading();
+                          resetUrl();
                         }}
+                        flexDirection={"row"}
                       >
-                        <Text fontWeight={"medium"}>Import</Text>
-                      </Button>
-                    </Container>
+                        {loadingHover && <XIcon height={28} width={28} />}
+                        {!loadingHover && <Loading size="md" />}
+                        <Text
+                          fontSize={14}
+                          alignSelf={"center"}
+                          paddingLeft={20}
+                        >
+                          {loadingStatus}
+                        </Text>
+                      </Container>
+                    )}
+
+                    {isLoaded && (
+                      // <Container key="toolbar" display={isLoaded ? "flex" : "none"}>
+                      <>
+                        <MenuButton
+                          label={showEditor ? "Hide code" : "Show code"}
+                          selected={showEditor}
+                          onPointerUp={() => {
+                            setShowEditor(!showEditor);
+                            onToggleEditor(!showEditor);
+                          }}
+                        >
+                          <CodeIcon height={16} width={16} />
+                        </MenuButton>
+
+                        <MenuDivider />
+
+                        <MenuButton
+                          label={"Enter Immersive"}
+                          onPointerUp={() => {
+                            // console.log(
+                            //   `https://hmd.link/${window.location.href}?token=${token}`
+                            // );
+                            window.open(
+                              `https://hmd.link/${window.location.href}&token=${token}`,
+                              "_blank"
+                            );
+                          }}
+                        >
+                          <Text fontWeight={"bold"} fontSize={10}>
+                            VR
+                          </Text>
+                        </MenuButton>
+                        <MenuButton
+                          label={"Fullscreen UI"}
+                          selected={isFullscreen ? true : false}
+                          onPointerUp={() => setIsFullscreen(true)}
+                        >
+                          <FullscreenIcon height={16} width={16} />
+                        </MenuButton>
+                        <MenuButton
+                          label={"Floating UI"}
+                          selected={isFullscreen ? false : true}
+                          onPointerUp={() => setIsFullscreen(false)}
+                        >
+                          <PIPIcon height={16} width={16} />
+                        </MenuButton>
+                        <MenuDivider />
+                        <MenuButton
+                          label={"Previous"}
+                          onPointerUp={(e) => {
+                            onNavigate(-1);
+                            e.stopPropagation();
+                          }}
+                        >
+                          <ChevronLeftIcon height={16} width={16} />
+                        </MenuButton>
+                        <MenuButton
+                          label={"Next"}
+                          onPointerUp={(e) => {
+                            onNavigate(1);
+                            e.stopPropagation();
+                          }}
+                        >
+                          <ChevronRightIcon height={16} width={16} />
+                        </MenuButton>
+                        <MenuButton
+                          label={"Reload"}
+                          onPointerUp={() => {
+                            window.location.reload();
+                          }}
+                        >
+                          <RotateCwIcon height={16} width={16} />
+                        </MenuButton>
+                        <MenuDivider />
+                        <MenuButton
+                          label={"Close"}
+                          onPointerUp={() => {
+                            const shouldReset = window.confirm(
+                              "Are you sure you want to exit?"
+                            );
+                            if (shouldReset) resetUrl();
+                          }}
+                        >
+                          <XIcon height={16} width={16} />
+                        </MenuButton>
+                        {/* </Container> */}
+                      </>
+                    )}
                   </>
                 )}
-
-                {!isLoaded && nodeId && fileId && (
-                  <Container
-                    padding={4}
-                    onHoverChange={(v) => setLoadingHover(v)}
-                    onPointerUp={() => {
-                      resetUrl();
-                    }}
-                    flexDirection={"row"}
-                  >
-                    {loadingHover && <XIcon height={28} width={28} />}
-                    {!loadingHover && <Loading size="md" />}
-                    <Text fontSize={14} alignSelf={"center"} paddingLeft={20}>
-                      {loadingStatus}
-                    </Text>
-                  </Container>
-                )}
-
-                {isLoaded && (
-                  // <Container key="toolbar" display={isLoaded ? "flex" : "none"}>
-                  <>
-                    <MenuButton
-                      label={showEditor ? "Hide code" : "Show code"}
-                      selected={showEditor}
-                      onPointerUp={() => {
-                        setShowEditor(!showEditor);
-                        onToggleEditor(!showEditor);
-                      }}
-                    >
-                      <CodeIcon height={16} width={16} />
-                    </MenuButton>
-
-                    <MenuDivider />
-                    {isQuest == "quest" && (
-                      <MenuButton
-                        label={"Enter Immersive"}
-                        onPointerUp={enterAR}
-                      >
-                        <Text fontWeight={"bold"} fontSize={10}>
-                          VR
-                        </Text>
-                      </MenuButton>
-                    )}
-                    {isQuest !== "quest" && (
-                      <MenuButton
-                        label={"Enter Immersive"}
-                        onPointerUp={() => {
-                          // console.log(
-                          //   `https://hmd.link/${window.location.href}?token=${token}`
-                          // );
-                          window.open(
-                            `https://hmd.link/${window.location.href}?token=${token}`,
-                            "_blank"
-                          );
-                        }}
-                      >
-                        <Text fontWeight={"bold"} fontSize={10}>
-                          VR
-                        </Text>
-                      </MenuButton>
-                    )}
-                    <MenuButton
-                      label={"Fullscreen UI"}
-                      selected={isFullscreen ? true : false}
-                      onPointerUp={() => setIsFullscreen(true)}
-                    >
-                      <FullscreenIcon height={16} width={16} />
-                    </MenuButton>
-                    <MenuButton
-                      label={"Floating UI"}
-                      selected={isFullscreen ? false : true}
-                      onPointerUp={() => setIsFullscreen(false)}
-                    >
-                      <PIPIcon height={16} width={16} />
-                    </MenuButton>
-                    <MenuDivider />
-                    <MenuButton
-                      label={"Previous"}
-                      onPointerUp={(e) => {
-                        onNavigate(-1);
-                        e.stopPropagation();
-                      }}
-                    >
-                      <ChevronLeftIcon height={16} width={16} />
-                    </MenuButton>
-                    <MenuButton
-                      label={"Next"}
-                      onPointerUp={(e) => {
-                        onNavigate(1);
-                        e.stopPropagation();
-                      }}
-                    >
-                      <ChevronRightIcon height={16} width={16} />
-                    </MenuButton>
-                    <MenuButton
-                      label={"Reload"}
-                      onPointerUp={() => {
-                        window.location.reload();
-                      }}
-                    >
-                      <RotateCwIcon height={16} width={16} />
-                    </MenuButton>
-                    <MenuDivider />
-                    <MenuButton
-                      label={"Close"}
-                      onPointerUp={() => {
-                        const shouldReset = window.confirm(
-                          "Are you sure you want to exit?"
-                        );
-                        if (shouldReset) resetUrl();
-                      }}
-                    >
-                      <XIcon height={16} width={16} />
-                    </MenuButton>
-                    {/* </Container> */}
-                  </>
-                )}
-              </>
+              </Card>
             )}
-          </Card>
-        </Container>
+
+            {isQuest == "quest" && (
+              <Card
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Button
+                  onPointerUp={() => {
+                    const xr = (navigator as any)?.xr;
+                    // if (xr) console.log(xr);
+                    enterAR();
+                  }}
+                >
+                  <Text fontWeight={"medium"}>Enter Immersive</Text>
+                </Button>
+              </Card>
+            )}
+          </Container>
+        )}
       </Container>
     </DefaultProperties>
   );

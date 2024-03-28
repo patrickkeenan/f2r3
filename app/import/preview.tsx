@@ -1,9 +1,9 @@
 "use client";
 import styles from "./styles.module.css";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   Root,
   Fullscreen,
@@ -18,18 +18,28 @@ import {
 import { Button } from "@/src/components/button";
 import { FigmaProvider, useFigmaContext } from "../auth/figmaTokenContext";
 import UI from "./ui";
-import { noEvents, XWebPointers } from "@coconut-xr/xinteraction/react";
+import { noEvents } from "@coconut-xr/xinteraction/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import EditorView from "./editor";
 import { Color } from "three";
 import PKCanvas from "../../src/components/pk/PKCanvas";
+import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
+import { signal } from "@preact/signals-react";
+
 // import { staticLayoutData } from "./layoutData";
 
 const FEATURE_TESTS = { vectors: false };
 
 const SPECIAL_NAME_TOKENS = [/\[.*?\]/, "*"];
 
-const CONTAINER_NODE_TYPES = ["FRAME", "INSTANCE", "GROUP", "ELLIPSE"];
+const CONTAINER_NODE_TYPES = [
+  "FRAME",
+  "COMPONENT",
+  "INSTANCE",
+  "GROUP",
+  "ELLIPSE",
+  "RECTANGLE",
+];
 const RENDER_NODE_TYPES = [
   ...CONTAINER_NODE_TYPES,
   "IMAGE",
@@ -43,32 +53,40 @@ const RENDER_NODE_TYPES = [
   "ELLIPSE",
   "REGULAR_POLYGON",
 ];
-const TRAVERSE_NODE_TYPES = "FRAME"; // [...RENDER_NODE_TYPES, "CANVAS", "DOCUMENT"];
+const TRAVERSE_NODE_TYPES = ["FRAME", "CANVAS", "DOCUMENT"]; // [...RENDER_NODE_TYPES, "CANVAS", "DOCUMENT"];
 
 export default function Preview({ ...props }) {
   // layoutData = staticLayoutData;
   // if (!layoutData) return <></>;
   const { token, nodeId, fileId, startingPointNodeId } = useFigmaContext();
   const hasScene = nodeId && fileId ? true : false;
+
+  const xrState = useXR.getState();
+  const isAR = xrState.mode === "immersive-ar";
+
+  useEffect(() => {
+    // console.log("switched mode", xrState.mode);
+  }, [xrState.mode]);
+
   const [fullscreen, setFullscreen] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
 
   const [layoutData, setLayoutData] = useState<null | any>(null);
   const [interactions, setInteractions] = useState({
-    actions123: {
-      hover: {
-        transformTranslateZ: 40,
-      },
-    },
-    Bottom123: {
-      hover: {
-        backgroundOpacity: 0,
-      },
-    },
+    // actions123: {
+    //   hover: {
+    //     transformTranslateZ: 40,
+    //   },
+    // },
+    // Bottom123: {
+    //   hover: {
+    //     backgroundOpacity: 0,
+    //   },
+    // },
   });
   const [layoutTsxString, setLayoutTsxString] = useState("");
   const [loaded, setLoaded] = useState(false);
-  const [rootNode, setRootNode] = useState(null);
+
   useEffect(() => {
     // setLoaded(false);
     if (token && fileId && nodeId) {
@@ -126,7 +144,7 @@ export default function Preview({ ...props }) {
               }
               currentNode = currentNode.parentNode;
             }
-            console.log(rootNode, pageNode);
+            // console.log(rootNode, pageNode);
             jsonData.pageNodeId = pageNode.id;
           } else {
             jsonData.pageNodeId = rootNode.id;
@@ -160,7 +178,7 @@ export default function Preview({ ...props }) {
           // Get images for each layer that needs it
           setLoadingStatus("Fetching images...");
           const imagesUrl = `https://api.figma.com/v1/files/${fileId}/images`;
-          console.log("requesting images", imagesUrl);
+          // console.log("requesting images", imagesUrl);
           fetch(imagesUrl, {
             headers: {
               // "X-FIGMA-TOKEN": token,
@@ -169,7 +187,7 @@ export default function Preview({ ...props }) {
           })
             .then((response) => response.json())
             .then(async (imageData) => {
-              console.log("imageData", imageData);
+              // console.log("imageData", imageData);
               jsonData.fileId = fileId;
               jsonData.images = imageData?.meta?.images || [];
               jsonData.layersByName = groupedLayersByName;
@@ -218,7 +236,7 @@ export default function Preview({ ...props }) {
     );
     // }
     const nodeIds = Object.keys(imagesByNodeId).join(",");
-    console.log("flatten ids", nodeIds, imagesByNodeId);
+    // console.log("flatten ids", nodeIds, imagesByNodeId);
     // fetchImageByNodeId(nodeId);
     const imagesUrl = `https://api.figma.com/v1/images/${fileId}?ids=${nodeIds}&scale=2&use_absolute_bounds=true`;
     // console.log("getting images", imagesUrl);
@@ -232,7 +250,7 @@ export default function Preview({ ...props }) {
         .then((response) => response.json())
         .then(async (imageData) => {
           const imageSrc = imageData.images;
-          console.log("flattened images", imageData.images);
+          // console.log("flattened images", imageData.images);
 
           jsonData.flatNodeImages = imageData.images;
           finalLoadStep(jsonData);
@@ -246,7 +264,7 @@ export default function Preview({ ...props }) {
   };
   const finalLoadStep = (jsonData) => {
     setLoadingStatus("Starting layout...");
-    console.log("loaded", jsonData);
+    // console.log("loaded", jsonData);
     setLayoutData(jsonData);
   };
   const addParentsAndSiblings = (node, parentNode = null) => {
@@ -259,12 +277,11 @@ export default function Preview({ ...props }) {
         const child = node.children[i];
         let newChild;
         newChild = addParentsAndSiblings(child, node);
-        if (TRAVERSE_NODE_TYPES.indexOf(child.type) > 0) {
+        if (TRAVERSE_NODE_TYPES.indexOf(child.type) > -1) {
           child.nextSibling = null;
           if (prevChild) {
             prevChild.nextSibling = child;
           }
-          child.prevSibling = prevChild;
           child.prevSibling = prevChild;
           prevChild = newChild;
         } else {
@@ -323,6 +340,24 @@ export default function Preview({ ...props }) {
     at: Date.now(),
   });
 
+  const uiComponent = (
+    <UI
+      key="ui"
+      onSwitch={(fullscreen) => {
+        // console.log("fullscreen", fullscreen);
+        setFullscreen(fullscreen);
+      }}
+      onNavigate={(increment) => {
+        // console.log("onNavigate", increment);
+        setIncrementNode({ increment, at: Date.now() });
+      }}
+      // onImport={() => console.log("import")}
+      isLoaded={loaded}
+      loadingStatus={loadingStatus}
+      onToggleEditor={(val) => setShowEditor(val)}
+    />
+  );
+
   return (
     <PanelGroup direction="vertical">
       <Panel maxSize={90} defaultSize={75}>
@@ -342,36 +377,8 @@ export default function Preview({ ...props }) {
               </mesh>
             </>
           )}
-          <Fullscreen>
-            <UI
-              key="ui"
-              onSwitch={(fullscreen) => {
-                // console.log("fullscreen", fullscreen);
-                setFullscreen(fullscreen);
-              }}
-              onNavigate={(increment) => {
-                console.log("onNavigate", increment);
-                setIncrementNode({ increment, at: Date.now() });
-              }}
-              onImport={() => console.log("import")}
-              isLoaded={loaded}
-              loadingStatus={loadingStatus}
-              onToggleEditor={(val) => setShowEditor(val)}
-            />
-            {fullscreen && (
-              <DefaultProperties backgroundOpacity={0}>
-                <Scene
-                  layoutData={layoutData}
-                  interactions={interactions}
-                  isFullscreen={fullscreen}
-                  incrementNode={incrementNode}
-                  handleStringOutput={(str) => setLayoutTsxString(str)}
-                />
-              </DefaultProperties>
-            )}
-          </Fullscreen>
-          {!fullscreen && (
-            <>
+          <SessionModeGuard allow={"immersive-ar"}>
+            <mesh position={[0, 1.2, -0.7]} scale={0.1}>
               <Scene
                 layoutData={layoutData}
                 interactions={interactions}
@@ -382,8 +389,40 @@ export default function Preview({ ...props }) {
                   setLayoutTsxString(str);
                 }}
               />
+            </mesh>
+          </SessionModeGuard>
+          <SessionModeGuard deny={"immersive-ar"}>
+            <>
+              <Fullscreen>
+                {uiComponent}
+                {fullscreen && layoutData && (
+                  <DefaultProperties backgroundOpacity={0}>
+                    <Scene
+                      layoutData={layoutData}
+                      interactions={interactions}
+                      isFullscreen={fullscreen}
+                      incrementNode={incrementNode}
+                      handleStringOutput={(str) => setLayoutTsxString(str)}
+                    />
+                  </DefaultProperties>
+                )}
+              </Fullscreen>
+              {!fullscreen && layoutData && (
+                <>
+                  <Scene
+                    layoutData={layoutData}
+                    interactions={interactions}
+                    isFullscreen={fullscreen}
+                    incrementNode={incrementNode}
+                    handleStringOutput={(str) => {
+                      // console.log(str);
+                      setLayoutTsxString(str);
+                    }}
+                  />
+                </>
+              )}
             </>
-          )}
+          </SessionModeGuard>
         </PKCanvas>
       </Panel>
 
@@ -440,14 +479,14 @@ function Scene({
   ...props
 }) {
   const { token, nodeId, fileId, startingPointNodeId } = useFigmaContext();
-  if (!layoutData) return <></>;
+
   // const [currentNodeId, setCurrentNodeId] = useState(layoutData.rootNodeId);
   useEffect(() => {
     if (incrementNode.increment > 0) {
-      console.log("go next");
+      // console.log("go next");
       linkToNextNode();
     } else if (incrementNode.increment < 0) {
-      console.log("go prev");
+      // console.log("go prev");
       linkToPrevNode();
     }
   }, [incrementNode]);
@@ -463,8 +502,8 @@ function Scene({
   );
 
   const linkToNodeId = (nodeId) => {
-    console.log(nodeId);
     const linkNode = findNodeById(allNodes, nodeId);
+    // console.log("linking to", nodeId, linkNode);
     if (linkNode) {
       setRootNode(linkNode);
     }
@@ -475,7 +514,7 @@ function Scene({
     }
   };
   const linkToNextNode = () => {
-    console.log(rootNode, rootNode.nextSibling);
+    // console.log(rootNode, rootNode.nextSibling);
     if (rootNode.nextSibling?.type == "FRAME") {
       setRootNode(rootNode.nextSibling);
     }
@@ -489,6 +528,50 @@ function Scene({
   if (rootNode?.type !== "FRAME") {
     return <></>;
   }
+
+  ////// TRANSITIONS, MAKE THIS REUSABLE
+  const rootTransitionStart = {
+    // scale: 0.5,
+    transformTranslateX: 0,
+    opacity: 0,
+  };
+  const rootTransitionEnd = {
+    // scale: 1,
+    transformTranslateX: 0,
+    opacity: 1,
+  };
+  useEffect(() => {
+    for (const key of Object.keys(rootTransitionTarget)) {
+      rootTransitionProps[key].value = rootTransitionStart[key];
+      // if (key == "transformTranslateX")
+      //   rootTransitionProps[key].value = 100 * incrementNode.increment;
+    }
+    // console.log("dd", incrementNode);
+    setRootTransitionTarget({
+      ...rootTransitionEnd,
+      transformTranslateX: 0,
+    });
+  }, [rootNode, incrementNode]);
+  const [rootTransitionTarget, setRootTransitionTarget] =
+    useState(rootTransitionStart);
+  const rootTransitionProps = useMemo(() => {
+    const result = {};
+    for (const key of Object.keys(rootTransitionStart)) {
+      result[key] = signal(rootTransitionStart[key]);
+    }
+    return result;
+  }, []);
+  useFrame((_, delta) => {
+    for (const key of Object.keys(rootTransitionTarget)) {
+      rootTransitionProps[key].value = damp(
+        rootTransitionProps[key].value,
+        rootTransitionTarget[key],
+        0.8,
+        0.1
+      );
+    }
+  });
+  ////// TRANSITIONS END
 
   // // Turn layout JSON into TSX
   useEffect(() => {
@@ -540,13 +623,17 @@ function Scene({
           pixelSize={0.01}
           sizeX={rootNode.absoluteBoundingBox.width / 100}
           sizeY={rootNode.absoluteBoundingBox.height / 100}
+          {...props}
         >
-          <FigmaLayer
-            node={rootNode}
-            linkTo={(node) => linkToNodeId(node)}
-            layoutData={layoutData}
-            interactions={interactions}
-          />
+          <mesh {...rootTransitionProps}>
+            <FigmaLayer
+              node={rootNode}
+              linkTo={(node) => linkToNodeId(node)}
+              layoutData={layoutData}
+              interactions={interactions}
+              {...rootTransitionProps}
+            />
+          </mesh>
         </Root>
       </>
     );
@@ -567,9 +654,74 @@ function FigmaLayer({
   interactions,
   ...props
 }) {
+  const [nodeVariant, setNodeVariant] = useState(node);
   const [isHovering, setIsHovering] = useState(false);
   const propsFromNode = figProps(node, parentNode, layoutData);
   const innerPropsFromNode = figInnerProps(node, parentNode);
+
+  const [targetProps, setTargetProps] = useState({
+    transformTranslateZ: props.transformTranslateZ
+      ? props.transformTranslateZ
+      : 0,
+  });
+
+  const componentSet = layoutData.components[node.componentId]
+    ? findNodeById(
+        layoutData.document,
+        layoutData.components[node.componentId].componentSetId
+      )
+    : null;
+  const hoverNodeVariant = componentSet
+    ? componentSet.children.find(
+        (variant) => variant.name.toLowerCase().indexOf("=hover") > -1
+      )
+    : null;
+
+  useEffect(() => {
+    setNodeVariant(node);
+  }, [node]);
+
+  // useEffect(() => {
+  //   if (!node?.componentId) return;
+  //   const componentSet = findNodeById(
+  //     layoutData.document,
+  //     layoutData.components[node.componentId].componentSetId
+  //   );
+  //   const hoverNodeVariant = componentSet.children.find(
+  //     (variant) => variant.name.toLowerCase().indexOf("=hover") > -1
+  //   );
+  //   if (hoverNodeVariant) {
+  //     if (isHovering) {
+  //       // console.log("set variant to", hoverNodeVariant);
+  //       setNodeVariant(hoverNodeVariant);
+  //     } else {
+  //       // console.log("set variant to", node);
+  //       setNodeVariant(node);
+  //     }
+  //   }
+  // }, [isHovering]);
+
+  const aniProps = ["transformTranslateZ"];
+  const signalProps = useMemo(() => {
+    const result = {};
+    for (const key of aniProps) {
+      result[key] = signal(0);
+    }
+    return result;
+    // console.log(result);
+  }, []);
+  useFrame((_, delta) => {
+    for (const key of aniProps) {
+      //     // console.log(key, aniProps, aniProps[key], signalProps, signalProps);
+      //     //where damp is a function that computes a value between "from" and "to" based on the delta time and some constant
+      signalProps[key].value = damp(
+        signalProps[key].value,
+        targetProps[key],
+        0.1,
+        0.1
+      );
+    }
+  });
 
   // console.log("propsFromNode", propsFromNode);
 
@@ -581,44 +733,45 @@ function FigmaLayer({
   // if (shouldRaster) {
 
   // Layer has been flagged to rasterize
-  if (layoutData.flatNodeImages[node.id]) {
+  if (layoutData.flatNodeImages[nodeVariant.id]) {
     innerComponent = (
       <Suspense>
         <SuspendingImage
-          src={layoutData.flatNodeImages[node.id]}
-          borderRadius={node.cornerRadius ? node.cornerRadius : 0}
+          src={layoutData.flatNodeImages[nodeVariant.id]}
+          borderRadius={nodeVariant.cornerRadius ? nodeVariant.cornerRadius : 0}
           // transformRotateZ={-(node.rotation * 180) / Math.PI}
         />
       </Suspense>
     );
-  } else if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
-    if (node.type == "INSTANCE") {
-      const componentSet = findNodeById(
-        layoutData.document,
-        layoutData.components[node.componentId].componentSetId
-      );
-      if (componentSet) {
-        const hoverVariant = componentSet.children.find(
-          (variant) => variant.name.toLowerCase().indexOf("=hover") > -1
-        );
-        if (hoverVariant && isHovering) {
-          node = hoverVariant;
-        }
-      }
-    } else if (node.type == "ELLIPSE") {
-      node.cornerRadius = 9999;
+  } else if (CONTAINER_NODE_TYPES.indexOf(nodeVariant.type) > -1) {
+    // Handle hover state for instances
+    if (nodeVariant.type == "INSTANCE") {
+      // const componentSet = findNodeById(
+      //   layoutData.document,
+      //   layoutData.components[nodeVariant.componentId].componentSetId
+      // );
+      // if (componentSet) {
+      //   const hoverVariant = componentSet.children.find(
+      //     (variant) => variant.name.toLowerCase().indexOf("=hover") > -1
+      //   );
+      //   if (hoverVariant && isHovering) {
+      //     node = hoverVariant;
+      //   }
+      // }
+    } else if (nodeVariant.type == "ELLIPSE") {
+      nodeVariant.cornerRadius = 9999;
     }
 
     // Child layers if there's children
     let nodeChildren = [];
-    if (node.children) {
-      nodeChildren = node.children.map((childNode, i) => {
+    if (nodeVariant.children) {
+      nodeChildren = nodeVariant.children.map((childNode, i) => {
         return (
           <FigmaLayer
             key={childNode.id + "_" + i}
             node={childNode}
             linkTo={linkTo}
-            parentNode={node}
+            parentNode={nodeVariant}
             layoutData={layoutData}
             interactions={interactions}
           />
@@ -627,14 +780,16 @@ function FigmaLayer({
     }
 
     innerComponent = (
-      <Container {...innerPropsFromNode} key={node.id + "-container"}>
+      <Container {...innerPropsFromNode} key={nodeVariant.id + "-container"}>
         {nodeChildren}
       </Container>
     );
 
     // Fill layers if ther's' fills
-    const hasVisibleFills = node.fills.some((fill) => fill.visible !== false);
-    if (node.fills && hasVisibleFills) {
+    const hasVisibleFills = nodeVariant.fills.some(
+      (fill) => fill.visible !== false
+    );
+    if (nodeVariant.fills && hasVisibleFills) {
       //   // For any gradient or image, we need to flatten them, and just have 1 background
       // Fill Types
       // SOLID
@@ -645,7 +800,7 @@ function FigmaLayer({
       // IMAGE
       // EMOJI
       // VIDEO
-      [...node.fills].reverse().forEach((fill, i) => {
+      [...nodeVariant.fills].reverse().forEach((fill, i) => {
         // if (
         //   layoutData.flatNodeImages[node.id] &&
         //   (fill.type == "IMAGE" || fill.type.indexOf("GRADIENT") > -1)
@@ -667,47 +822,47 @@ function FigmaLayer({
         // } else
         if (fill.type == "SOLID") {
           innerComponent = (
-            <Container {...figFillProps(fill, node, i)}>
+            <Container {...figFillProps(fill, nodeVariant, i)}>
               {innerComponent}
             </Container>
           );
         }
       });
     }
-    if (node.strokes && !layoutData.flatNodeImages[node.id]) {
-      [...node.strokes].reverse().forEach((stroke, i) => {
+    if (nodeVariant.strokes && !layoutData.flatNodeImages[nodeVariant.id]) {
+      [...nodeVariant.strokes].reverse().forEach((stroke, i) => {
         if (stroke.visible !== false) {
           innerComponent = (
-            <Container {...figStrokeProps(stroke, node, i)}>
+            <Container {...figStrokeProps(stroke, nodeVariant, i)}>
               {innerComponent}
             </Container>
           );
         }
       });
     }
-  } else if (node.type == "TEXT") {
+  } else if (nodeVariant.type == "TEXT") {
     innerComponent = (
-      <Container key={node.id + "-container"} {...innerPropsFromNode}>
-        <Text key={node.id + "-text"} {...figTextProps(node)}>
-          {node.characters}
+      <Container key={nodeVariant.id + "-container"} {...innerPropsFromNode}>
+        <Text key={nodeVariant.id + "-text"} {...figTextProps(nodeVariant)}>
+          {nodeVariant.characters}
         </Text>
       </Container>
     );
-  } else if (node.type == "VECTOR") {
+  } else if (nodeVariant.type == "VECTOR") {
     // <Container key={node.id + "-container"} {...innerPropsFromNode}>
     // <SvgIconFromText {...figSVGProps(node)} {...innerPropsFromNode} />;
     let path;
-    if (node.fillGeometry[0]) {
-      path = node.fillGeometry[0].path;
-    } else if (node.strokeGeometry[0]) {
-      path = node.strokeGeometry[0].path;
+    if (nodeVariant.fillGeometry[0]) {
+      path = nodeVariant.fillGeometry[0].path;
+    } else if (nodeVariant.strokeGeometry[0]) {
+      path = nodeVariant.strokeGeometry[0].path;
     }
     if (path) {
       innerComponent = (
-        <Container key={node.id + "-container"} {...innerPropsFromNode}>
+        <Container key={nodeVariant.id + "-container"} {...innerPropsFromNode}>
           <SvgIconFromText
-            svgWidth={node.size.x}
-            svgHeight={node.size.y}
+            svgWidth={nodeVariant.size.x}
+            svgHeight={nodeVariant.size.y}
             text={`<svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -720,12 +875,12 @@ function FigmaLayer({
           >
             <path d="${path}" />
           </svg>`}
-            width={node.absoluteBoundingBox.width}
+            width={nodeVariant.absoluteBoundingBox.width}
           />
         </Container>
       );
     } else {
-      innerComponent = <Text>Issue with vector {node.name}</Text>;
+      innerComponent = <Text>Issue with vector {nodeVariant.name}</Text>;
     }
 
     // </Container>;
@@ -740,39 +895,72 @@ function FigmaLayer({
   // {node.type == "TEXT" && <Text>{node.characters}</Text>}
   //
   // @bbohlender I think this is where the interactions would go. Maybe you need a ref or something to track the states at the top of the component, not sure
-  if (interactions[node.name]) {
+  if (interactions[nodeVariant.name]) {
     // console.log("node has interactions", interactions, interactions[node.name]);
   }
 
   let linkName: null | string = null;
-  if (node.name.match(/\[to=(.*?)\]/i, "")?.length > 1) {
+  if (nodeVariant.name.match(/\[to=(.*?)\]/i, "")?.length > 1) {
     // has a link
-    linkName = node.name.match(/\[to=(.*?)\]/i, "")[1];
+    linkName = nodeVariant.name.match(/\[to=(.*?)\]/i, "")[1];
     // console.log("has link name", linkName, node.name);
   }
+  // const [aniProps, setAniProps] = useState(["transformTranslateY"]);
 
   return (
     <Container
       {...propsFromNode}
       {...props}
-      onHoverChange={(h) => setIsHovering(h)}
-      {...(interactions[node.name] ? interactions[node.name] : {})}
+      {...{
+        onPointerUp: nodeVariant.transitionNodeID
+          ? () => {
+              console.log(nodeVariant);
+              linkTo(nodeVariant.transitionNodeID);
+            }
+          : null,
+      }}
+      onHoverChange={(hover) => {
+        if (hoverNodeVariant) {
+          if (hover) {
+            // console.log("set variant to", hoverNodeVariant);
+            setNodeVariant(hoverNodeVariant);
+          } else {
+            // console.log("set variant to", node);
+            setNodeVariant(node);
+          }
+        }
+      }}
+      // {...(interactions[node.name] ? interactions[node.name] : {})}
       {...(linkName
         ? {
             onPointerDown: () => {
-              if (linkName) {
-                const linkNode = layoutData.layersByName[linkName];
-                if (linkNode) {
-                  console.log(linkNode);
-                  linkTo(linkNode);
-                }
-              }
+              // if (linkName) {
+              //   const linkNode = layoutData.layersByName[linkName];
+              //   if (linkNode) {
+              //     console.log(linkNode);
+              //     linkTo(linkNode);
+              //   }
+              // }
             },
           }
         : {})}
+      // {...signalProps}
+      // onPointerDown={(e) => {
+      //   console.log(targetProps);
+      //   setTargetProps({
+      //     transformTranslateZ: targetProps.transformTranslateZ == 0 ? -40 : 0,
+      //   });
+      //   e.stopPropagation();
+      // }}
     >
       {innerComponent}
     </Container>
+  );
+}
+
+function damp(currentValue, targetValue, delta, speed) {
+  return (
+    currentValue + (targetValue - currentValue) * Math.min(1, delta * speed)
   );
 }
 
@@ -868,7 +1056,7 @@ function figImageProps(fill, node, imageSrc) {
 }
 function figSVGProps(node) {
   let props: any = {};
-  console.log(node);
+  // console.log(node);
   // const propertyMappings = {
   //   opacity: "opacity",
   // };
@@ -880,7 +1068,7 @@ function figSVGProps(node) {
   // }
 
   const hasVisibleFills = node.fills?.some((fill) => fill.visible !== false);
-  console.log(node.fills);
+  // console.log(node.fills);
   // if (!hasVisibleFills) {
   //   props.opacity = 0;
   // }
@@ -1053,7 +1241,8 @@ function figCornerRadiusPropsWithStroke(node) {
 }
 
 function figProps(node, parentNode, layoutData) {
-  // console.log("node is", node);
+  if (!node) return {};
+
   const { children, absoluteBoundingBox, ...orgProps } = node;
   let props: any = {};
 
@@ -1146,7 +1335,8 @@ function figProps(node, parentNode, layoutData) {
   return props;
 }
 function figInnerProps(node, parentNode) {
-  // console.log("node is", node);
+  if (!node) return {};
+
   const { children, absoluteBoundingBox, ...orgProps } = node;
   let props: any = {};
 

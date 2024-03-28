@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, response: NextResponse) {
     return Response.json("Set user token", {
       status: 302,
       headers: {
-        Location: "/import" + paramString,
+        Location: "/import?" + paramString,
         "Set-Cookie": `figmatoken=${personalToken}`,
       },
     });
