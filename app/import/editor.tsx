@@ -189,7 +189,11 @@ export default function EditorView({
           </div>
           <div
             className={`${styles.tabBarButton} ${fileName === "layout.json" ? styles.tabBarButtonSelected : ""}`}
-            onClick={() => setFileName("layout.json")}
+            onClick={() => {
+              formatJsonAsText(layoutData).then(() =>
+                setFileName("layout.json")
+              );
+            }}
           >
             JSON
           </div>
