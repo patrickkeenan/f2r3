@@ -77,7 +77,7 @@ export default function EditorView({
   };
 
   const editorRef = useRef<null | any>(null);
-  const [fileName, setFileName] = useState("interaction.ts");
+  const [fileName, setFileName] = useState("layout.tsx");
   const file = files[fileName];
 
   const monaco = useMonaco();
@@ -174,7 +174,8 @@ export default function EditorView({
         style={{ display: "flex", alignItems: "center", background: "#1e1e1e" }}
       >
         <div className={styles.tabBar}>
-          <button
+          {/* TODO: add interactions */}
+          {/* <button
             onClick={() => {
               sendUpdateToPreview();
             }}
@@ -186,7 +187,7 @@ export default function EditorView({
             onClick={() => setFileName("interaction.ts")}
           >
             INTERACTION
-          </div>
+          </div> */}
           <div
             className={`${styles.tabBarButton} ${fileName === "layout.json" ? styles.tabBarButtonSelected : ""}`}
             onClick={() => {

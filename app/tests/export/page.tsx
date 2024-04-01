@@ -17,19 +17,20 @@ import {
 } from "@react-three/uikit-lucide";
 import { Card } from "@/src/components/card";
 import { Tabs, TabsButton } from "@/src/components/tabs";
+import PKCanvas from "@/src/components/pk/PKCanvas";
 
 export default function Preview() {
   const [fullscreen, setFullscreen] = useState(false);
   return (
     <>
-      <Canvas
+      <PKCanvas
         style={{ height: "100%", touchAction: "none" }}
         gl={{ localClippingEnabled: true }}
       >
         <Scene />
-        <Environment background blur={1} preset="city" />
-        <OrbitControls />
-      </Canvas>
+        {/* <Environment background blur={1} preset="city" />
+        <OrbitControls /> */}
+      </PKCanvas>
     </>
   );
 }

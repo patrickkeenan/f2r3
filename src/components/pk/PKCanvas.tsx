@@ -9,7 +9,12 @@ import React, {
 } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls, Sphere } from "@react-three/drei";
+import {
+  Environment,
+  OrbitControls,
+  Sphere,
+  PerspectiveCamera,
+} from "@react-three/drei";
 import { Hands, XRCanvas } from "@coconut-xr/natuerlich/defaults";
 import {
   useXR,
@@ -234,12 +239,14 @@ export default function PKCanvas({
           </ImmersiveSessionOrigin>
         )}
 
-        <SessionModeGuard deny="immersive-ar">
-          {!isFullscreen && <OrbitControls />}
-          <Suspense>
-            <Environment background blur={1} preset="city" />
-          </Suspense>
-        </SessionModeGuard>
+        {!isFullscreen && (
+          <SessionModeGuard deny="immersive-ar">
+            <OrbitControls />
+            <Suspense>
+              <Environment background blur={1} preset="city" />
+            </Suspense>
+          </SessionModeGuard>
+        )}
         {children}
       </XRCanvas>
 

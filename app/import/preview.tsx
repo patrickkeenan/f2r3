@@ -25,6 +25,7 @@ import { Color } from "three";
 import PKCanvas from "../../src/components/pk/PKCanvas";
 import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
 import { signal } from "@preact/signals-react";
+import StarterScene from "../tests/export/scene";
 
 // import { staticLayoutData } from "./layoutData";
 
@@ -371,10 +372,7 @@ export default function Preview({ ...props }) {
           <directionalLight intensity={1} position={[-5, 5, 10]} />
           {!hasScene && (
             <>
-              <mesh>
-                <meshBasicMaterial color="#f09" />
-                <sphereGeometry />
-              </mesh>
+              <StarterScene />
             </>
           )}
           <SessionModeGuard allow={"immersive-ar"}>
@@ -396,15 +394,13 @@ export default function Preview({ ...props }) {
               <Fullscreen>
                 {uiComponent}
                 {fullscreen && layoutData && (
-                  <DefaultProperties backgroundOpacity={0}>
-                    <Scene
-                      layoutData={layoutData}
-                      interactions={interactions}
-                      isFullscreen={fullscreen}
-                      incrementNode={incrementNode}
-                      handleStringOutput={(str) => setLayoutTsxString(str)}
-                    />
-                  </DefaultProperties>
+                  <Scene
+                    layoutData={layoutData}
+                    interactions={interactions}
+                    isFullscreen={fullscreen}
+                    incrementNode={incrementNode}
+                    handleStringOutput={(str) => setLayoutTsxString(str)}
+                  />
                 )}
               </Fullscreen>
               {!fullscreen && layoutData && (
@@ -530,47 +526,47 @@ function Scene({
   }
 
   ////// TRANSITIONS, MAKE THIS REUSABLE
-  const rootTransitionStart = {
-    // scale: 0.5,
-    transformTranslateX: 0,
-    opacity: 0,
-  };
-  const rootTransitionEnd = {
-    // scale: 1,
-    transformTranslateX: 0,
-    opacity: 1,
-  };
-  useEffect(() => {
-    for (const key of Object.keys(rootTransitionTarget)) {
-      rootTransitionProps[key].value = rootTransitionStart[key];
-      // if (key == "transformTranslateX")
-      //   rootTransitionProps[key].value = 100 * incrementNode.increment;
-    }
-    // console.log("dd", incrementNode);
-    setRootTransitionTarget({
-      ...rootTransitionEnd,
-      transformTranslateX: 0,
-    });
-  }, [rootNode, incrementNode]);
-  const [rootTransitionTarget, setRootTransitionTarget] =
-    useState(rootTransitionStart);
-  const rootTransitionProps = useMemo(() => {
-    const result = {};
-    for (const key of Object.keys(rootTransitionStart)) {
-      result[key] = signal(rootTransitionStart[key]);
-    }
-    return result;
-  }, []);
-  useFrame((_, delta) => {
-    for (const key of Object.keys(rootTransitionTarget)) {
-      rootTransitionProps[key].value = damp(
-        rootTransitionProps[key].value,
-        rootTransitionTarget[key],
-        0.8,
-        0.1
-      );
-    }
-  });
+  // const rootTransitionStart = {
+  //   // scale: 0.5,
+  //   transformTranslateX: 0,
+  //   opacity: 0,
+  // };
+  // const rootTransitionEnd = {
+  //   // scale: 1,
+  //   transformTranslateX: 0,
+  //   opacity: 1,
+  // };
+  // useEffect(() => {
+  //   for (const key of Object.keys(rootTransitionTarget)) {
+  //     rootTransitionProps[key].value = rootTransitionStart[key];
+  //     // if (key == "transformTranslateX")
+  //     //   rootTransitionProps[key].value = 100 * incrementNode.increment;
+  //   }
+  //   // console.log("dd", incrementNode);
+  //   setRootTransitionTarget({
+  //     ...rootTransitionEnd,
+  //     transformTranslateX: 0,
+  //   });
+  // }, [rootNode, incrementNode]);
+  // const [rootTransitionTarget, setRootTransitionTarget] =
+  //   useState(rootTransitionStart);
+  // const rootTransitionProps = useMemo(() => {
+  //   const result = {};
+  //   for (const key of Object.keys(rootTransitionStart)) {
+  //     result[key] = signal(rootTransitionStart[key]);
+  //   }
+  //   return result;
+  // }, []);
+  // useFrame((_, delta) => {
+  //   for (const key of Object.keys(rootTransitionTarget)) {
+  //     rootTransitionProps[key].value = damp(
+  //       rootTransitionProps[key].value,
+  //       rootTransitionTarget[key],
+  //       0.8,
+  //       0.1
+  //     );
+  //   }
+  // });
   ////// TRANSITIONS END
 
   // // Turn layout JSON into TSX
@@ -578,9 +574,7 @@ function Scene({
     const layoutText = figmaLayerText({
       node: rootNode,
       layoutData,
-      width: "100%",
-      height: "100%",
-      overflow: "scroll",
+      // overflow: "scroll",
     });
     let sceneString = `
     import { Root, Fullscreen, Container, Text, Image, Content } from "@react-three/uikit";
@@ -611,9 +605,9 @@ function Scene({
         layoutData={layoutData}
         interactions={interactions}
         linkTo={(node) => linkToNodeId(node)}
-        width={"100%"}
-        height={"100%"}
-        overflow="scroll"
+        // width={"100%"}
+        // height={"100%"}
+        // overflow="scroll"
       />
     );
   } else {
@@ -623,17 +617,18 @@ function Scene({
           pixelSize={0.01}
           sizeX={rootNode.absoluteBoundingBox.width / 100}
           sizeY={rootNode.absoluteBoundingBox.height / 100}
+          // transformTranslateZ={-420}
           {...props}
         >
-          <mesh {...rootTransitionProps}>
-            <FigmaLayer
-              node={rootNode}
-              linkTo={(node) => linkToNodeId(node)}
-              layoutData={layoutData}
-              interactions={interactions}
-              {...rootTransitionProps}
-            />
-          </mesh>
+          {/* <mesh {...rootTransitionProps}> */}
+          <FigmaLayer
+            node={rootNode}
+            linkTo={(node) => linkToNodeId(node)}
+            layoutData={layoutData}
+            interactions={interactions}
+            // {...rootTransitionProps}
+          />
+          {/* </mesh> */}
         </Root>
       </>
     );
@@ -654,9 +649,10 @@ function FigmaLayer({
   interactions,
   ...props
 }) {
+  if (node.visible == false) return <></>;
   const [nodeVariant, setNodeVariant] = useState(node);
   const [isHovering, setIsHovering] = useState(false);
-  const propsFromNode = figProps(node, parentNode, layoutData);
+  const outerPropsFromNode = figOuterProps(node, parentNode, layoutData);
   const innerPropsFromNode = figInnerProps(node, parentNode);
 
   const [targetProps, setTargetProps] = useState({
@@ -723,7 +719,7 @@ function FigmaLayer({
     }
   });
 
-  // console.log("propsFromNode", propsFromNode);
+  // console.log("outerPropsFromNode", outerPropsFromNode);
 
   let innerComponent;
 
@@ -735,13 +731,11 @@ function FigmaLayer({
   // Layer has been flagged to rasterize
   if (layoutData.flatNodeImages[nodeVariant.id]) {
     innerComponent = (
-      <Suspense>
-        <SuspendingImage
-          src={layoutData.flatNodeImages[nodeVariant.id]}
-          borderRadius={nodeVariant.cornerRadius ? nodeVariant.cornerRadius : 0}
-          // transformRotateZ={-(node.rotation * 180) / Math.PI}
-        />
-      </Suspense>
+      <Image
+        src={layoutData.flatNodeImages[nodeVariant.id]}
+        borderRadius={nodeVariant.cornerRadius ? nodeVariant.cornerRadius : 0}
+        // transformRotateZ={-(node.rotation * 180) / Math.PI}
+      />
     );
   } else if (CONTAINER_NODE_TYPES.indexOf(nodeVariant.type) > -1) {
     // Handle hover state for instances
@@ -891,7 +885,7 @@ function FigmaLayer({
 
   // Need layout props on outer container, then padding on the inner container
 
-  // console.log("figprops", node.name, propsFromNode);
+  // console.log("figOuterprops", node.name, outerPropsFromNode);
   // {node.type == "TEXT" && <Text>{node.characters}</Text>}
   //
   // @bbohlender I think this is where the interactions would go. Maybe you need a ref or something to track the states at the top of the component, not sure
@@ -909,8 +903,8 @@ function FigmaLayer({
 
   return (
     <Container
-      {...propsFromNode}
       {...props}
+      {...outerPropsFromNode}
       {...{
         onPointerUp: nodeVariant.transitionNodeID
           ? () => {
@@ -952,6 +946,7 @@ function FigmaLayer({
       //   });
       //   e.stopPropagation();
       // }}
+      // {...{ border: 1, borderColor: "#f09" }}
     >
       {innerComponent}
     </Container>
@@ -970,13 +965,16 @@ function figmaLayerText({
   layoutData = { images: {}, flatNodeImages: {} },
   ...props
 }) {
-  const propsFromNode = figProps(node, parentNode, layoutData);
+  const outerPropsFromNode = figOuterProps(node, parentNode, layoutData);
   const innerPropsFromNode = figInnerProps(node, parentNode);
 
   let innerComponent;
 
+  if (layoutData.flatNodeImages[node.id]) {
+    innerComponent = `<Image src={"${layoutData.flatNodeImages[node.id]}"} borderRadius={${node.cornerRadius ? node.cornerRadius : 0}}>{${innerComponent}}</Image>`;
+  }
   // Could have children
-  if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
+  else if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
     // Child layers if there's children
     let nodeChildren = [];
     if (node.children) {
@@ -988,7 +986,6 @@ function figmaLayerText({
         });
       });
     }
-
     innerComponent = `
       <Container
         key={"${node.name}"}
@@ -1036,7 +1033,7 @@ function figmaLayerText({
     `;
   }
 
-  return `<Container {...${JSON.stringify(propsFromNode)}}>{${innerComponent}}</Container>`;
+  return `<Container {...${JSON.stringify(outerPropsFromNode)}}>{${innerComponent}}</Container>`;
 }
 
 function figImageProps(fill, node, imageSrc) {
@@ -1044,13 +1041,6 @@ function figImageProps(fill, node, imageSrc) {
     src: imageSrc,
     ...figCornerRadiusProps(node),
   };
-
-  // Doesn't exist, maybe a type issue?
-  // if (fill.scaleMode == "FILL") {
-  //   props.fit = "fill";
-  // } else {
-  //   props.fit = "cover";
-  // }
 
   return props;
 }
@@ -1152,6 +1142,10 @@ function figFillProps(fill, node, fillIndex) {
     backgroundOpacity: fill.opacity ? fill.opacity : 1,
     ...figCornerRadiusProps(node),
     flexGrow: 1,
+    // width: "100%",
+    // height: "100%",
+    // border: 3,
+    // borderColor: "#09f",
   };
   if (fill.type.indexOf("GRADIENT") > -1) {
     props.color = fill.gradientStops[0].color;
@@ -1176,9 +1170,11 @@ function figStrokeProps(stroke, node, strokeIndex) {
     key: node.id + "_stroke_" + strokeIndex,
     borderOpacity: stroke.opacity ? stroke.opacity : 1,
     border: node.strokeWeight,
+    flexGrow: 1,
+    // height: "100%",
+    // borderColor: "#09f",
     // borderRadius: node.cornerRadius ? node.cornerRadius + node.strokeWeight : 0,
     ...figCornerRadiusPropsWithStroke(node),
-    flexGrow: 1,
   };
   if (stroke.type.indexOf("GRADIENT") > -1) {
     props.borderColor = stroke.gradientStops[0].color;
@@ -1240,7 +1236,7 @@ function figCornerRadiusPropsWithStroke(node) {
   return props;
 }
 
-function figProps(node, parentNode, layoutData) {
+function figOuterProps(node, parentNode, layoutData) {
   if (!node) return {};
 
   const { children, absoluteBoundingBox, ...orgProps } = node;
@@ -1252,6 +1248,10 @@ function figProps(node, parentNode, layoutData) {
     opacity: "backgroundOpacity",
     itemSpacing: "gap",
     key: "name",
+    minWidth: "minWidth",
+    minHeight: "minHeight",
+    maxWidth: "maxWidth",
+    maxHeight: "maxHeight",
   };
 
   //   let reactStyle = {};
@@ -1266,21 +1266,6 @@ function figProps(node, parentNode, layoutData) {
 
   props = { ...figCornerRadiusProps(node), ...props };
 
-  // if (parentNode) {
-  props = {
-    ...props,
-    ...translateFigmaConstraintsToReact(node, parentNode),
-  };
-
-  // {
-  //   type: "DROP_SHADOW",
-  //   visible: true,
-  //   color: { r: 0, g: 0, b: 0, a: 0 },
-  //   blendMode: "NORMAL",
-  //   offset: { x: -20, y: 24 },
-  //   radius: 4,
-  //   showShadowBehindNode: false,
-  // },
   if (node.effects?.length > 0) {
     node.effects.forEach((effect, i) => {
       if (effect.type == "DROP_SHADOW" && effect.color.a == 0) {
@@ -1290,47 +1275,106 @@ function figProps(node, parentNode, layoutData) {
       }
     });
   }
-  // } else {
-  //   props = {
-  //     ...props,
-  //     ...node.absoluteBoundingBox,
-  //   };
-  // }
 
-  // TODO: Temp solve for fills, just use the first solid one
-  // if (
-  //   node.type == "FRAME" ||
-  //   node.type == "IMAGE" ||
-  //   node.type == "RECTANGLE" ||
-  //   node.type == "GROUP"
-  // ) {
-  //   const fill = node.fills.find((element) => element.type == "SOLID");
-  //   if (fill) {
-  //     props.backgroundColor = figColor(fill.color);
-  //     props.backgroundOpacity = fill.opacity;
-  //   }
-  // }
-
-  // for (let i in props) {
-  //   if (i == "height") {
-  //     console.log(
-  //       "found height",
-  //       i,
-  //       props[i],
-  //       props[i] == null || props[i] == undefined
-  //     );
-  //   }
-  //   if (props[i] == null || props[i] == undefined || Number.isNaN(props[i])) {
-  //     // console.log("found null", key);
-  //     delete props[i];
-  //   }
-  // }
-  // props["width"] = 1;
-  // props["height"] = 1;
   if (node.rotation && !layoutData.flatNodeImages[node.id]) {
     // console.log("rot is", (node.rotation * 180) / Math.PI);
     props.transformRotateZ = (node.rotation * 180) / Math.PI;
   }
+
+  // TODO: make this work somehow
+  if (node.preserveRatio) {
+    // props.aspectRatio = node.width / node.height;
+    // props.border = 2;
+    // props.borderColor = "#0f9";
+    // props.keepAspectRatio = true;
+  }
+
+  // Layout logic
+  const nodeBox = node.absoluteBoundingBox;
+  const parentBox = parentNode?.absoluteBoundingBox;
+
+  // There IS auto layout
+  if (parentNode?.layoutMode) {
+    props.positionType = "static";
+    if (
+      node.layoutSizingHorizontal == "FILL" ||
+      node.layoutSizingVertical == "FILL"
+    ) {
+      props.flexGrow = 1;
+      props.flexShrink = 1;
+    }
+    if (node.layoutSizingHorizontal == "FIXED") {
+      props.width = nodeBox.width;
+    } else if (node.layoutSizingHorizontal == "HUG") {
+      props.alignItems = "flex-start";
+    }
+    if (node.layoutSizingVertical == "FIXED") {
+      props.height = nodeBox.height;
+    } else if (node.layoutSizingVertical == "HUG") {
+      props.alignItems = "flex-start";
+    }
+
+    // THERE IS NOT AUTOLAYOUT
+  } else if (parentNode) {
+    props = { ...props, ...node.absoluteBoundingBox };
+    props.positionType = "absolute";
+
+    if (node.constraints.vertical == "TOP") {
+      props.positionTop = nodeBox.y - parentBox.y;
+    } else if (node.constraints.vertical == "BOTTOM") {
+      props.positionBottom =
+        parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
+      parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+    } else if (node.constraints.vertical == "TOP_BOTTOM") {
+      props.positionTop = nodeBox.y - parentBox.y;
+      props.positionBottom =
+        parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
+    } else if (node.constraints.vertical == "CENTER") {
+      props.positionTop = nodeBox.y - parentBox.y;
+    } else if (node.constraints.vertical == "SCALE") {
+      props.positionTop = nodeBox.y - parentBox.y;
+    }
+
+    if (node.constraints.horizontal == "LEFT") {
+      props.positionLeft = nodeBox.x - parentBox.x;
+    } else if (node.constraints.horizontal == "RIGHT") {
+      props.positionRight =
+        parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+    } else if (node.constraints.horizontal == "LEFT_RIGHT") {
+      const l = nodeBox.x - parentBox.x;
+      const r = parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
+      props.positionLeft = l;
+      props.positionRight = r;
+      props.width = (nodeBox.width / parentBox.width) * 100 + "%";
+    } else if (node.constraints.horizontal == "CENTER") {
+      props.positionLeft =
+        ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+    } else if (node.constraints.horizontal == "SCALE") {
+      props.positionLeft =
+        ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
+    }
+  } else if (!parentNode) {
+    // This is the root
+    props.width = "100%";
+    props.height = "100%";
+    // style.overflow = "scroll";
+  }
+
+  props = {
+    ...props,
+  };
+
+  // if (node.name == "Frame 2608029") {
+  //   console.log(node);
+  //   // props.flexGrow = 1;
+  //   // props.flexShrink = 0;
+  //   // props.width = 1200;
+  //   props.border = 3;
+  //   props.borderColor = "#f0f";
+  //   // props.alignContent = "stretch";
+  //   props.alignSelf = "stretch";
+  //   // props.justifyContent = "space-between";
+  // }
 
   return props;
 }
@@ -1356,12 +1400,122 @@ function figInnerProps(node, parentNode) {
       props[propertyMappings[key]] = node[key];
     }
   }
+  if (!parentNode) {
+    props.positionTop = 0;
+    props.positionLeft = 0;
+    props.positionRight = 0;
+    props.positionBottom = 0;
+    props.positionType = "absolute";
+    // props.width = "100%";
+    // props.height = "100%";
+    // props.overflow = "scroll";
+  }
 
-  props = {
-    flexGrow: 1,
-    ...props,
-    ...translateFigmaInnerPropsToReact(node, parentNode),
-  };
+  if (!parentNode) {
+    props.positionTop = 0;
+    props.positionBottom = 0;
+    props.width = "100%";
+    props.height = "100%";
+    props.overflow = "scroll";
+  }
+
+  // Padding ann inner component props
+  switch (node.layoutAlign) {
+    case "STRETCH":
+      props.justifyContent = "space-between";
+      props.alignContent = "stretch";
+      props.alignSelf = "stretch";
+      break;
+  }
+
+  // Issue with padding: it pushes the background fill in, need to do padding in another container
+
+  props.paddingTop = node.paddingTop;
+  props.paddingBottom = node.paddingBottom;
+  props.paddingLeft = node.paddingLeft;
+  props.paddingRight = node.paddingRight;
+  if (props.paddingRight) {
+    // props.border = 3;
+    // props.borderColor = "#f09";
+  }
+
+  if (node.layoutMode == "VERTICAL") {
+    props.flexDirection = "column";
+    props.flexBasis = node.height;
+  } else if (node.layoutMode == "HORIZONTAL") {
+    props.flexDirection = "row";
+    props.flexBasis = node.width;
+    // props.width="100%"
+  }
+
+  if (node.layoutWrap == "WRAP") {
+    props.flexWrap = "wrap";
+  } else {
+    props.flexWrap = "no-wrap";
+  }
+
+  // Figma's alignment to Yoga's alignItems
+  if (node.primaryAxisAlignItems) {
+    switch (node.primaryAxisAlignItems) {
+      case "MIN":
+        props.justifyContent = "flex-start";
+        break;
+      case "MAX":
+        props.justifyContent = "flex-end";
+        break;
+      case "CENTER":
+        props.justifyContent = "center";
+        break;
+      case "SPACE_BETWEEN":
+        props.justifyContent = "space-between";
+        break;
+    }
+  }
+  if (node.counterAxisAlignItems) {
+    switch (node.counterAxisAlignItems) {
+      case "MIN":
+        props.alignItems = "flex-start";
+        break;
+      case "MAX":
+        props.alignItems = "flex-end";
+        break;
+      case "CENTER":
+        props.alignItems = "center";
+        break;
+      case "BASELINE":
+        props.alignItems = "Baseline";
+        break;
+      default:
+        props.alignItems = "stretch";
+    }
+  }
+
+  const hasVisibleStrokes = node.strokes.some(
+    (stroke) => stroke.visible !== false
+  );
+
+  // TODO: adjust width based on stroke & padding
+  // if (hasVisibleStrokes) {
+  //   if (props.width && node.strokeWeight && node.strokes.length > 0) {
+  //     props.width -= node.strokes.length * node.strokeWeight;
+  //   }
+  //   if (props.height && node.strokeWeight && node.strokes.length > 0) {
+  //     props.height -= node.strokes.length * node.strokeWeight;
+  //   }
+  // }
+  // TODO: adjust width based on stroke & padding
+
+  // if (node.name == "Frame 2608029") {
+  //   console.log(node);
+  //   props.flexGrow = 1;
+  //   props.flexShrink = 0;
+  //   props.width = "100%";
+  //   props.border = 3;
+  //   props.borderColor = "#f00";
+  //   props.alignContent = "stretch";
+  //   props.alignSelf = "stretch";
+  //   props.justifyContent = "space-between";
+  // }
 
   return props;
 }
@@ -1375,270 +1529,4 @@ function figColor(color) {
   };
   const colorString = `rgba(${translatedColor.r}, ${translatedColor.g}, ${translatedColor.b}, ${translatedColor.a})`;
   return colorString;
-}
-
-function translateFigmaInnerPropsToReact(node, parentNode) {
-  let style: any = {};
-
-  // Padding ann inner component props
-  switch (node.layoutAlign) {
-    case "STRETCH":
-      style.justifyContent = "space-between";
-      break;
-  }
-
-  // Issue with padding: it pushes the background fill in, need to do padding in another container
-
-  style.paddingTop = node.paddingTop;
-  style.paddingBottom = node.paddingBottom;
-  style.paddingLeft = node.paddingLeft;
-  style.paddingRight = node.paddingRight;
-
-  if (node.layoutMode == "VERTICAL") {
-    style.flexDirection = "column";
-  } else if (node.layoutMode == "HORIZONTAL") {
-    style.flexDirection = "row";
-    // style.width="100%"
-  }
-
-  // Figma's alignment to Yoga's alignItems
-  if (node.primaryAxisAlignItems) {
-    switch (node.primaryAxisAlignItems) {
-      case "MIN":
-        style.justifyContent = "flex-start";
-        break;
-      case "MAX":
-        style.justifyContent = "flex-end";
-        break;
-      case "CENTER":
-        style.justifyContent = "center";
-        break;
-      case "SPACE_BETWEEN":
-        style.justifyContent = "space-between";
-        break;
-    }
-  }
-  if (node.counterAxisAlignItems) {
-    switch (node.counterAxisAlignItems) {
-      case "MIN":
-        style.alignItems = "flex-start";
-        break;
-      case "MAX":
-        style.alignItems = "flex-end";
-        break;
-      case "CENTER":
-        style.alignItems = "center";
-        break;
-      case "BASELINE":
-        style.alignItems = "Baseline";
-        break;
-      default:
-        style.alignItems = "stretch";
-    }
-  }
-  const hasVisibleStrokes = node.strokes.some(
-    (stroke) => stroke.visible !== false
-  );
-  if (hasVisibleStrokes) {
-    if (style.width && node.strokeWeight && node.strokes.length > 0) {
-      style.width -= node.strokes.length * node.strokeWeight;
-    }
-    if (style.height && node.strokeWeight && node.strokes.length > 0) {
-      style.height -= node.strokes.length * node.strokeWeight;
-    }
-  }
-
-  return style;
-}
-
-function translateFigmaConstraintsToReact(node, parentNode) {
-  let style: any = {};
-  const nodeBox = node.absoluteBoundingBox;
-  const parentBox = parentNode?.absoluteBoundingBox;
-
-  // props.positionLeft =
-  //   node.absoluteRenderBounds.x - parentNode.absoluteBoundingBox.x;
-  // props.positionTop =
-  //   node.absoluteRenderBounds.y - parentNode.absoluteBoundingBox.y;
-
-  // if (parentNode) {
-  // There IS auto layout
-  if (parentNode?.layoutMode) {
-    style.positionType = "static";
-    if (
-      node.layoutSizingHorizontal == "FILL" ||
-      node.layoutSizingVertical == "FILL"
-    ) {
-      style.flexGrow = 1;
-    }
-    if (node.layoutSizingHorizontal == "FIXED") {
-      style.width = nodeBox.width;
-    } else if (node.layoutSizingHorizontal == "HUG") {
-      // style.alignItems = "flex-start";
-      // delete style.width;
-    }
-    if (node.layoutSizingVertical == "FIXED") {
-      style.height = nodeBox.height;
-    } else if (node.layoutSizingVertical == "HUG") {
-      // style.alignItems = "flex-start";
-      // delete style.height;
-    }
-
-    // if (parentNode.layoutSizingHorizontal == "HUG") {
-    //   style.borderColor = "#f00";
-    //   style.positionRight = undefined;
-    //   style.positionLeft = undefined;
-
-    //   // style.flexShrink = 1;
-    // }
-    // if (parentNode.layoutSizingVertical == "HUG") {
-    //   style.borderColor = "#ff7";
-    //   style.positionTop = undefined;
-    //   style.positionBottom = undefined;
-    //   // style.flexShrink = 1;
-    // }
-
-    // if (node.layoutSizingVertical == "HUG") {
-    //   style.borderColor = "#f0f";
-    //   // style.positionType = "static";
-    //   // style.flexShrink = 1;
-    // }
-    // if (node.layoutSizingHorizontal == "HUG") {
-    //   style.borderColor = "#0ff";
-    //   style.flexShrink = 1;
-    //   style.padding = 0;
-    //   style.margin = 0;
-    //   // style.positionType = "static";
-    //   // style.flexShrink = 1;
-    // }
-
-    if (node.itemSpacing) {
-      // style.justifyContent = "space-between"; // Simplified example
-    }
-
-    // if (parentNode.layoutMode == "VERTICAL") {
-    //   style.positionType = "static";
-    // } else if (parentNode.layoutMode == "HORIZONTAL") {
-    //   style.positionType = "static";
-    //   // style.width="100%"
-    // }
-
-    // style.itemSpacing = 0;
-
-    // Figma's padding to Yoga's padding
-
-    // if (style.height) {
-    //   if (parentNode.paddingTop) {
-    //     style.height = style.height + parentNode.paddingTop;
-    //     style.paddingTop = parentNode.paddingTop;
-    //   }
-
-    //   if (parentNode.paddingBottom) {
-    //     style.height = style.height + parentNode.paddingBottom;
-    //     style.paddingBottom = parentNode.paddingBottom;
-    //   }
-    // }
-    // if (style.width) {
-    //   if (parentNode.paddingRight) {
-    //     style.width = style.width + parentNode.paddingRight;
-    //     style.paddingRight = parentNode.paddingRight;
-    //   }
-    //   if (parentNode.paddingLeft) {
-    //     style.width = style.width + parentNode.paddingLeft;
-    //     style.paddingLeft = parentNode.paddingLeft;
-    //   }
-    // }
-
-    // THERE IS NOT AUTOLAYOUT
-  } else {
-    style = { ...style, ...node.absoluteBoundingBox };
-    style.positionType = "absolute";
-
-    if (!parentBox) {
-      // This is the root
-      style.positionTop = 0;
-      style.positionLeft = 0;
-      style.width = "100%";
-      style.height = "100%";
-    } else {
-      if (node.constraints.vertical == "TOP") {
-        style.positionTop = nodeBox.y - parentBox.y;
-      } else if (node.constraints.vertical == "BOTTOM") {
-        style.positionBottom =
-          parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
-        parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-      } else if (node.constraints.vertical == "TOP_BOTTOM") {
-        style.positionTop = nodeBox.y - parentBox.y;
-        style.positionBottom =
-          parentBox.height - (nodeBox.y - parentBox.y + nodeBox.height);
-      } else if (node.constraints.vertical == "CENTER") {
-        style.positionTop = nodeBox.y - parentBox.y;
-      } else if (node.constraints.vertical == "SCALE") {
-        style.positionTop = nodeBox.y - parentBox.y;
-      }
-
-      if (node.constraints.horizontal == "LEFT") {
-        style.positionLeft = nodeBox.x - parentBox.x;
-      } else if (node.constraints.horizontal == "RIGHT") {
-        style.positionRight =
-          parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-      } else if (node.constraints.horizontal == "LEFT_RIGHT") {
-        const l = nodeBox.x - parentBox.x;
-        const r = parentBox.width - (nodeBox.x - parentBox.x + nodeBox.width);
-        style.positionLeft = l;
-        style.positionRight = r;
-        style.width = (nodeBox.width / parentBox.width) * 100 + "%";
-      } else if (node.constraints.horizontal == "CENTER") {
-        style.positionLeft =
-          ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
-      } else if (node.constraints.horizontal == "SCALE") {
-        style.positionLeft =
-          ((nodeBox.x - parentBox.x) / parentBox.width) * 100 + "%";
-      }
-    }
-  }
-
-  // Padding ann inner component props
-  // switch (node.layoutAlign) {
-  //   case "STRETCH":
-  //     style.justifyContent = "space-between";
-  //     break;
-  // }
-
-  // // Issue with padding: it pushes the background fill in, need to do padding in another container
-
-  // style.paddingTop = node.paddingTop;
-  // style.paddingBottom = node.paddingBottom;
-  // style.paddingLeft = node.paddingLeft;
-  // style.paddingRight = node.paddingRight;
-
-  // if (node.layoutMode == "VERTICAL") {
-  //   style.flexDirection = "column";
-  // } else if (node.layoutMode == "HORIZONTAL") {
-  //   style.flexDirection = "row";
-  //   // style.width="100%"
-  // }
-
-  // // Figma's alignment to Yoga's alignItems
-  // if (node.primaryAxisAlignItems) {
-  //   switch (node.primaryAxisAlignItems) {
-  //     case "MIN":
-  //       style.alignItems = "flex-start";
-  //       break;
-  //     case "MAX":
-  //       style.alignItems = "flex-end";
-  //       break;
-  //     case "CENTER":
-  //       style.alignItems = "center";
-  //       style.justifyContent = "center";
-  //       style.borderColor = "#393";
-  //       break;
-  //     case "SPACE_BETWEEN":
-  //       style.alignItems = "space-between";
-  //       style.justifyContent = "space-between";
-  //       break;
-  //   }
-  // }
-
-  return style;
 }

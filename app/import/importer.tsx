@@ -7,11 +7,11 @@ import { useSearchParams, useRouter } from "next/navigation";
 export default function ImporterPage({ token, ...props }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const fileId = searchParams.get("fileId");
-  const nodeId = searchParams.get("nodeId");
-  const startingPointNodeId = searchParams.get("startingPointNodeId");
+  const fileId = searchParams?.get("fileId");
+  const nodeId = searchParams?.get("nodeId");
+  const startingPointNodeId = searchParams?.get("startingPointNodeId");
 
-  const getToken = searchParams.get("token");
+  const getToken = searchParams?.get("token");
   // console.log("getToken", getToken);
   if (getToken) {
     // console.log("getToken", getToken);
