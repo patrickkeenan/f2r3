@@ -9,7 +9,7 @@ import {
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Root, Fullscreen, Container, Text, Content } from "@react-three/uikit";
-import Scene from "./scene";
+import Scene from "./exports/landing/scene";
 import { Button } from "@/src/components/button";
 import {
   PictureInPicture2,
@@ -18,6 +18,7 @@ import {
 import { Card } from "@/src/components/card";
 import { Tabs, TabsButton } from "@/src/components/tabs";
 import PKCanvas from "@/src/components/pk/PKCanvas";
+import UI from "./import/ui";
 
 export default function Preview() {
   const [fullscreen, setFullscreen] = useState(false);
@@ -27,9 +28,18 @@ export default function Preview() {
         style={{ height: "100%", touchAction: "none" }}
         gl={{ localClippingEnabled: true }}
       >
+        <ambientLight intensity={0.5} />
+        <directionalLight intensity={1} position={[-5, 5, 10]} />
         <Scene />
-        {/* <Environment background blur={1} preset="city" />
-        <OrbitControls /> */}
+        <Fullscreen>
+          <UI
+          //   key="ui"
+          //   onSwitch={(fullscreen) => {
+          //     // console.log("fullscreen", fullscreen);
+          //     // setFullscreen(fullscreen);
+          //   }}
+          />
+        </Fullscreen>
       </PKCanvas>
     </>
   );

@@ -37,9 +37,9 @@ import { useFigmaContext } from "@/app/auth/figmaTokenContext";
 import { useEnterXR } from "@coconut-xr/natuerlich/react";
 
 export default function UI({
-  onSwitch,
-  onNavigate,
-  onToggleEditor,
+  onSwitch = (fullscreen) => {},
+  onNavigate = (increment) => {},
+  onToggleEditor = (showEditor) => {},
   isLoaded = false,
   loadingStatus = "",
   ...props
@@ -181,6 +181,19 @@ export default function UI({
       });
     }
   }, []);
+  useEffect(() => {
+    function handleEnterKey(event) {
+      if (event.key === "Enter") {
+        if (urlValid) startLoading();
+      }
+    }
+    // Adding the event listener
+    window.addEventListener("keydown", handleEnterKey);
+    // Cleanup: removing the event listener when the component is unmounted
+    return () => {
+      window.removeEventListener("keydown", handleEnterKey);
+    };
+  }, [urlValid]);
   // console.log(isAR, isQuest);
 
   return (

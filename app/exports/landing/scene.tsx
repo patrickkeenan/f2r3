@@ -21,10 +21,10 @@ export default function Layout() {
         {
           <Container
             {...{
-              key: "47:6280_fill_0",
               backgroundOpacity: 1,
               borderRadius: 40,
               flexGrow: 1,
+              alignSelf: "stretch",
               backgroundColor: "rgba(255, 255, 255, 1)",
             }}
           >
@@ -49,7 +49,7 @@ export default function Layout() {
                   {...{
                     type: "FRAME",
                     x: -5138,
-                    y: 3692,
+                    y: 4483,
                     width: 103,
                     height: 44,
                     positionType: "absolute",
@@ -60,12 +60,10 @@ export default function Layout() {
                   {
                     <Image
                       src={
-                        "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/87f6dd87-4b82-4253-a39d-e3b0cd30cfb1"
+                        "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/992e15f4-9e71-4aca-965d-dc8959398456"
                       }
                       borderRadius={0}
-                    >
-                      {undefined}
-                    </Image>
+                    />
                   }
                 </Container>
                 <Container
@@ -75,7 +73,7 @@ export default function Layout() {
                     maxWidth: 500,
                     gap: 24,
                     x: -5514,
-                    y: 3820,
+                    y: 4611,
                     width: 452,
                     height: 301,
                     positionType: "absolute",
@@ -101,6 +99,7 @@ export default function Layout() {
                           positionType: "static",
                           flexGrow: 1,
                           flexShrink: 1,
+                          alignSelf: "stretch",
                           alignItems: "flex-start",
                         }}
                       >
@@ -138,6 +137,7 @@ export default function Layout() {
                           positionType: "static",
                           flexGrow: 1,
                           flexShrink: 1,
+                          alignSelf: "stretch",
                           alignItems: "flex-start",
                         }}
                       >
@@ -175,6 +175,7 @@ export default function Layout() {
                           positionType: "static",
                           flexGrow: 1,
                           flexShrink: 1,
+                          alignSelf: "stretch",
                           alignItems: "flex-start",
                         }}
                       >
@@ -221,7 +222,7 @@ export default function Layout() {
                   {...{
                     type: "FRAME",
                     x: -5001,
-                    y: 3766,
+                    y: 4557,
                     width: 418,
                     height: 418,
                     positionType: "absolute",
@@ -243,53 +244,49 @@ export default function Layout() {
                           borderBottomLeftRadius: 0,
                           type: "VECTOR",
                           x: -4826.580154418945,
-                          y: 3854.159912109375,
+                          y: 4645.16015625,
                           width: 69.91999816894531,
                           height: 51.29999923706055,
                           positionType: "absolute",
-                          positionTop: 88.159912109375,
+                          positionTop: 88.16015625,
                           positionLeft: "41.727235784941314%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/be090449-abc1-41ee-9b81-49578991003c"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/48326255-369b-4372-abde-80f0fef52459"
                             }
                             borderRadius={0}
-                          >
-                            {undefined}
-                          </Image>
+                          />
                         }
                       </Container>
                       <Container
                         {...{
                           type: "FRAME",
                           x: -4972.5,
-                          y: 3961.320068359375,
+                          y: 4752.31982421875,
                           width: 131.47999572753906,
                           height: 133.75999450683594,
                           positionType: "absolute",
-                          positionTop: 195.320068359375,
+                          positionTop: 195.31982421875,
                           positionLeft: "6.8181818181818175%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9ae4e7a5-df8b-4877-a7e4-822e90dbe7cd"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a7f22cdb-ddc7-4767-adc8-b35770a600b3"
                             }
                             borderRadius={0}
-                          >
-                            {undefined}
-                          </Image>
+                          />
                         }
                       </Container>
                       <Container
                         {...{
                           type: "FRAME",
                           x: -4973.259765625,
-                          y: 3794.1201171875,
+                          y: 4585.1201171875,
                           width: 154.27999877929688,
                           height: 133.75999450683594,
                           positionType: "absolute",
@@ -300,12 +297,10 @@ export default function Layout() {
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8a4f738e-e829-4f30-bbfe-8d090f38da51"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3e802cef-459b-4a07-a767-a3a06d88156a"
                             }
                             borderRadius={0}
-                          >
-                            {undefined}
-                          </Image>
+                          />
                         }
                       </Container>
                       <Container
@@ -314,7 +309,7 @@ export default function Layout() {
                           transformTranslateZ: 40,
                           transformTranslateX: 0,
                           x: -4765.02001953125,
-                          y: 3830.60009765625,
+                          y: 4621.60009765625,
                           width: 132.24000549316406,
                           height: 133.75999450683594,
                           positionType: "absolute",
@@ -325,12 +320,10 @@ export default function Layout() {
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/0e489701-ff0e-4497-b6e6-c9d1f9d53912"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/2953d0a6-cb11-408a-b4fb-f35490e73fc9"
                             }
                             borderRadius={0}
-                          >
-                            {undefined}
-                          </Image>
+                          />
                         }
                       </Container>
                       <Container
@@ -339,23 +332,21 @@ export default function Layout() {
                           transformTranslateZ: 40,
                           transformTranslateX: 0,
                           x: -4801.1201171875,
-                          y: 3983.360107421875,
+                          y: 4774.35986328125,
                           width: 143.63999938964844,
                           height: 165.67999267578125,
                           positionType: "absolute",
-                          positionTop: 217.360107421875,
+                          positionTop: 217.35986328125,
                           positionLeft: "47.81815378289473%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6b0b0f7f-a152-4c41-97df-4baee938a97e"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d2a760bc-92a9-4279-8442-ee008a82b39d"
                             }
                             borderRadius={0}
-                          >
-                            {undefined}
-                          </Image>
+                          />
                         }
                       </Container>
                       <Container
@@ -366,23 +357,21 @@ export default function Layout() {
                           borderBottomLeftRadius: 0,
                           type: "VECTOR",
                           x: -4847.85986328125,
-                          y: 4016.800048828125,
+                          y: 4807.7998046875,
                           width: 47.5,
                           height: 51.68000030517578,
                           positionType: "absolute",
-                          positionTop: 250.800048828125,
+                          positionTop: 250.7998046875,
                           positionLeft: "36.636396344198566%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/755b17e9-9303-42f5-9c9a-61390bcfbaf1"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c6cbda83-992f-4e71-8487-3bde6ce83e53"
                             }
                             borderRadius={0}
-                          >
-                            {undefined}
-                          </Image>
+                          />
                         }
                       </Container>
                     </Container>

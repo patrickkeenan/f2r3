@@ -25,7 +25,7 @@ import { Color } from "three";
 import PKCanvas from "../../src/components/pk/PKCanvas";
 import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
 import { signal } from "@preact/signals-react";
-import StarterScene from "../tests/export/scene";
+import StarterScene from "../exports/landing/scene";
 
 // import { staticLayoutData } from "./layoutData";
 
@@ -971,7 +971,7 @@ function figmaLayerText({
   let innerComponent;
 
   if (layoutData.flatNodeImages[node.id]) {
-    innerComponent = `<Image src={"${layoutData.flatNodeImages[node.id]}"} borderRadius={${node.cornerRadius ? node.cornerRadius : 0}}>{${innerComponent}}</Image>`;
+    innerComponent = `<Image src={"${layoutData.flatNodeImages[node.id]}"} borderRadius={${node.cornerRadius ? node.cornerRadius : 0}} />`;
   }
   // Could have children
   else if (CONTAINER_NODE_TYPES.indexOf(node.type) > -1) {
@@ -1151,6 +1151,7 @@ function figFillProps(fill, node, fillIndex) {
     props.color = fill.gradientStops[0].color;
     props.opacity = fill.gradientStops[0].color.a;
   }
+  props.alignSelf = "stretch";
 
   if (fill.color) {
     props.backgroundColor = figColor(fill.color);
@@ -1302,6 +1303,7 @@ function figOuterProps(node, parentNode, layoutData) {
     ) {
       props.flexGrow = 1;
       props.flexShrink = 1;
+      props.alignSelf = "stretch";
     }
     if (node.layoutSizingHorizontal == "FIXED") {
       props.width = nodeBox.width;
@@ -1376,6 +1378,8 @@ function figOuterProps(node, parentNode, layoutData) {
   //   // props.justifyContent = "space-between";
   // }
 
+  delete props.key;
+
   return props;
 }
 function figInnerProps(node, parentNode) {
@@ -1419,6 +1423,7 @@ function figInnerProps(node, parentNode) {
     props.overflow = "scroll";
   }
 
+  // TODO: figure this yoga thing out
   // Padding ann inner component props
   switch (node.layoutAlign) {
     case "STRETCH":
@@ -1426,6 +1431,12 @@ function figInnerProps(node, parentNode) {
       props.alignContent = "stretch";
       props.alignSelf = "stretch";
       break;
+  }
+  if (
+    node.layoutSizingHorizontal == "FILL" ||
+    node.layoutSizingVertical == "FILL"
+  ) {
+    props.alignSelf = "stretch";
   }
 
   // Issue with padding: it pushes the background fill in, need to do padding in another container
@@ -1516,6 +1527,8 @@ function figInnerProps(node, parentNode) {
   //   props.alignSelf = "stretch";
   //   props.justifyContent = "space-between";
   // }
+
+  delete props.key;
 
   return props;
 }
