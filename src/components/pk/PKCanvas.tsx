@@ -37,6 +37,7 @@ import {
   Text,
   Image,
   Content,
+  canvasInputProps,
 } from "@react-three/uikit";
 import { ArrowLeft } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -111,8 +112,10 @@ export default function PKCanvas({
         dpr={devicePixelRatio}
         gl={{ localClippingEnabled: true, preserveDrawingBuffer: true }}
         frameBufferScaling={frameBufferScaling}
+        camera={{ position: [0, 0, 10] }}
         frameRate={heighestAvailableFramerate}
         style={{ width: "100vw", height: "100vh" }}
+        {...canvasInputProps}
         {...rest}
       >
         <color args={[0]} attach="background" />
