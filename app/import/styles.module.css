@@ -51,11 +51,15 @@
   padding: 4px;
   border-radius: 10px;
   line-height: 20px;
-  padding: 6px 10px 4px;
+  padding: 4px 10px 4px;
   /* border: 1px solid rgba(255, 255, 255, 0.1); */
   cursor: pointer;
   color: #1e1e1e;
   background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  line-height: 20px;
+  gap: 4px;
 }
 
 .tabBarButton:hover {
@@ -67,7 +71,7 @@
 }
 .tabBarButtonSelected {
   color: #000;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.7);
 }
 .tabBarButtonSelected:hover {
   background: rgba(255, 255, 255, 0.9);
@@ -77,4 +81,16 @@
 }
 .tabBarButtonSelected .icon {
   color: #111;
+}
+.loaderRotate {
+  animation: rotation 4s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

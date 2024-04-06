@@ -23,9 +23,11 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import EditorView from "./editor";
 import { Color } from "three";
 import PKCanvas from "../../src/components/pk/PKCanvas";
+import { Grabbable } from "@coconut-xr/natuerlich/defaults";
 import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
 import { signal } from "@preact/signals-react";
 import StarterScene from "../exports/landing/scene";
+import { Grab } from "@react-three/uikit-lucide";
 
 // import { staticLayoutData } from "./layoutData";
 
@@ -376,7 +378,12 @@ export default function Preview({ ...props }) {
             </>
           )}
           <SessionModeGuard allow={"immersive-ar"}>
-            <mesh position={[0, 1.2, -0.7]} scale={0.1}>
+            <mesh
+              position={[0, 0.9, -0.5]}
+              scale={0.05}
+              rotation={[-0.4, 0, 0]}
+            >
+              {/* <Grabbable position={[0, 0, 0]}> */}
               <Scene
                 layoutData={layoutData}
                 interactions={interactions}
@@ -387,6 +394,7 @@ export default function Preview({ ...props }) {
                   setLayoutTsxString(str);
                 }}
               />
+              {/* </Grabbable> */}
             </mesh>
           </SessionModeGuard>
           <SessionModeGuard deny={"immersive-ar"}>
@@ -613,23 +621,27 @@ function Scene({
   } else {
     return (
       <>
-        <Root
-          pixelSize={0.01}
-          sizeX={rootNode.absoluteBoundingBox.width / 100}
-          sizeY={rootNode.absoluteBoundingBox.height / 100}
-          // transformTranslateZ={-420}
-          {...props}
-        >
-          {/* <mesh {...rootTransitionProps}> */}
-          <FigmaLayer
-            node={rootNode}
-            linkTo={(node) => linkToNodeId(node)}
-            layoutData={layoutData}
-            interactions={interactions}
-            // {...rootTransitionProps}
-          />
-          {/* </mesh> */}
-        </Root>
+        <Grabbable position={[0, 0, 0]}>
+          <Root
+            pixelSize={0.01}
+            sizeX={rootNode.absoluteBoundingBox.width / 100}
+            sizeY={rootNode.absoluteBoundingBox.height / 100}
+            // transformTranslateZ={-420}
+            {...props}
+          >
+            {/* <mesh {...rootTransitionProps}> */}
+
+            <FigmaLayer
+              node={rootNode}
+              linkTo={(node) => linkToNodeId(node)}
+              layoutData={layoutData}
+              interactions={interactions}
+              // {...rootTransitionProps}
+            />
+
+            {/* </mesh> */}
+          </Root>
+        </Grabbable>
       </>
     );
   }

@@ -223,18 +223,18 @@ export default function PKCanvas({
             }
           >
             <Hands
-              type="touch"
-              rayColor={"rgba(0,0,0)"}
-              raySize={0}
+              type="grab"
+              // rayColor={"rgba(0,0,0)"}
+              // raySize={0}
               onPointerDownMissed={() => {
                 console.log("click");
               }}
             />
-            <Hands
+            {/* <Hands
             // modelLeft="hand-left.gltf"
             // modelRight="hand-right.gltf"
             // rayMaterial={{ color: "blue" }}
-            />
+            /> */}
             <HandGestureLayer />
           </ImmersiveSessionOrigin>
         )}

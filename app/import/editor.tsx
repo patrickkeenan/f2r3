@@ -11,6 +11,13 @@ import * as typescript from "prettier/plugins/typescript";
 import prettier from "prettier/standalone";
 import Preview from "./preview";
 import { useFigmaContext } from "../auth/figmaTokenContext";
+import { saveAs } from "file-saver";
+import JSZip from "jszip";
+import {
+  ArrowDownToLine as ArrowDownToLineIcon,
+  ImageDownIcon,
+  LoaderIcon,
+} from "lucide-react";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -37,7 +44,8 @@ export default function EditorView({
         console.log("formatted string", formattedString);
         // onInteractionUpdate(interactionString);
         sendUpdateToPreview();
-        setInteractionString(formattedString);
+        // TODO: Add interactions
+        // setInteractionString(formattedString);
       });
   }, [interactionString]);
 
@@ -46,9 +54,24 @@ export default function EditorView({
   // useEffect(() => {
   //   formatJsonAsText(layoutData).then(() => setFileName("layout.json"));
   // }, []);
+  const [imageUrlsInLayout, setImageUrlsInLayout] = useState<string[]>([]);
   useEffect(() => {
+    const regex = /<Image\s+src=\s*{"(.*?)"}/g;
+    let match;
+    const urls: string[] = [];
+    while ((match = regex.exec(layoutTsxString)) !== null) {
+      urls.push(match[1]);
+    }
+    // console.log(urls);
+    setImageUrlsInLayout(urls);
+
+    const relativeImagesTsxString = layoutTsxString.replace(
+      /https?:\/\/[^\/]+\/images\/(.*?)(?=")/g,
+      "/images/$1.png"
+    );
+
     prettier
-      .format(layoutTsxString, {
+      .format(relativeImagesTsxString, {
         parser: "typescript",
         plugins: [babel, typescript, estree],
       })
@@ -168,11 +191,67 @@ export default function EditorView({
     setLayoutDataString(formattedString);
   };
 
+  const [downloadingImages, setDownloadingImages] = useState(false);
+  const downloadImages = async (urls) => {
+    console.log(urls);
+    // return;
+    const zip = new JSZip();
+    const folder = zip.folder("images");
+    setDownloadingImages(true);
+
+    for (let i = 0; i < urls.length; i++) {
+      const response = await fetch(urls[i]);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(blob);
+      reader.onloadend = function () {
+        if (!folder) {
+          console.log("error zipping");
+          return;
+        }
+        if (reader.result) {
+          const imgData = reader.result as ArrayBuffer;
+          // Extract the file name from the URL
+          const fileName = urls[i].substring(urls[i].lastIndexOf("/") + 1);
+          folder.file(fileName + ".png", imgData);
+          if (i === urls.length - 1) {
+            zip.generateAsync({ type: "blob" }).then(function (content) {
+              setDownloadingImages(false);
+              saveAs(content, "images.zip");
+            });
+          }
+        }
+      };
+    }
+  };
+
   return (
     <>
       <div
-        style={{ display: "flex", alignItems: "center", background: "#1e1e1e" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "#1e1e1e",
+          paddingLeft: 20,
+          paddingRight: 20,
+        }}
       >
+        <div
+          className={`${styles.tabBarButton} ${styles.tabBarButtonSelected}`}
+          onClick={() => {
+            if (!downloadingImages) downloadImages(imageUrlsInLayout);
+          }}
+        >
+          {downloadingImages && (
+            <LoaderIcon
+              className={styles.loaderRotate}
+              width={20}
+              height={20}
+            />
+          )}
+          {!downloadingImages && <ImageDownIcon width={20} height={20} />}
+          {imageUrlsInLayout.length}
+        </div>
         <div className={styles.tabBar}>
           {/* TODO: add interactions */}
           {/* <button

@@ -8,6 +8,8 @@ import {
   Container,
   Text,
   Content,
+  Image,
+  Svg,
   DefaultProperties,
 } from "@react-three/uikit";
 import {
@@ -18,6 +20,7 @@ import {
   RotateCw as RotateCwIcon,
   ChevronRight as ChevronRightIcon,
   ChevronLeft as ChevronLeftIcon,
+  LogOut as LogOutIcon,
 } from "@react-three/uikit-lucide";
 
 import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
@@ -135,6 +138,9 @@ export default function UI({
     setUrlValid(false);
     router.push(`${pathname}`);
   }
+  function signOut() {
+    window.location.href = "/signout";
+  }
   // useEffect(() => {
   //   resetUrl();
   // }, []);
@@ -198,6 +204,37 @@ export default function UI({
 
   return (
     <DefaultProperties>
+      {token && (
+        <Container
+          positionType={"absolute"}
+          positionTop={40}
+          positionRight={40}
+          flexShrink={1}
+          alignItems={"flex-start"}
+          zIndexOffset={500}
+        >
+          <Card
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+            paddingLeft={8}
+            gap={4}
+          >
+            <Svg src="/images/f2r3_logo_square.svg" width={16} height={16} />
+            <MenuButton
+              label={"Log out"}
+              onPointerUp={() => {
+                const shouldSignout = window.confirm(
+                  "Are you sure you want to sign out?"
+                );
+                if (shouldSignout) signOut();
+              }}
+            >
+              <LogOutIcon height={16} width={16} />
+            </MenuButton>
+          </Card>
+        </Container>
+      )}
       <Container
         positionType={"absolute"}
         positionBottom={20}

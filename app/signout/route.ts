@@ -6,7 +6,7 @@ export async function GET(request) {
   return Response.json("No token available", {
     status: 302,
     headers: {
-      Location: "/import",
+      Location: "/",
     },
   });
 }
