@@ -26,7 +26,7 @@ import PKCanvas from "../../src/components/pk/PKCanvas";
 import { Grabbable } from "@coconut-xr/natuerlich/defaults";
 import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
 import { signal } from "@preact/signals-react";
-import StarterScene from "../exports/landing/scene";
+import StarterScene from "../exports/import-screen/scene";
 import { Grab } from "@react-three/uikit-lucide";
 
 // import { staticLayoutData } from "./layoutData";
@@ -372,7 +372,11 @@ export default function Preview({ ...props }) {
         >
           <ambientLight intensity={0.5} />
           <directionalLight intensity={1} position={[-5, 5, 10]} />
-          {!hasScene && <>{/* <StarterScene /> */}</>}
+          {!hasScene && (
+            <>
+              <StarterScene />
+            </>
+          )}
           <SessionModeGuard allow={"immersive-ar"}>
             <mesh
               position={[0, 0.9, -0.5]}

@@ -272,7 +272,17 @@ export default function UI({
                       const authUrl = `https://www.figma.com/oauth?client_id=${process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_SERVER_URL}/auth&scope=files:read&state=abc&response_type=code`;
                       router.push(authUrl);
                     }}
+                    flexDirection="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    paddingLeft={20}
+                    gap={12}
                   >
+                    <Svg
+                      src="/images/figma_logo_square.svg"
+                      width={12}
+                      height={12}
+                    />{" "}
                     <Text fontWeight={"medium"}>Login with Figma</Text>
                   </Button>
                 )}
