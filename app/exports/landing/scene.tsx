@@ -199,12 +199,19 @@ export default function Layout() {
                     >
                       {
                         <Container
+                          cursor="pointer"
+                          onClick={() => (window.location.href = "/import")}
+                          transformTranslateZ={36}
                           {...{
                             backgroundOpacity: 1,
                             borderRadius: 8,
                             flexGrow: 1,
                             alignSelf: "stretch",
                             backgroundColor: "rgba(0, 0, 0, 1)",
+                            hover: {
+                              backgroundOpacity: 0.8,
+                              transformTranslateZ: 48,
+                            },
                           }}
                         >
                           {
@@ -231,9 +238,6 @@ export default function Layout() {
                               >
                                 {
                                   <Container
-                                    onClick={() =>
-                                      (window.location.href = "/import")
-                                    }
                                     key={"Try it out-container"}
                                     {...{
                                       type: "TEXT",
@@ -577,12 +581,19 @@ export default function Layout() {
                     >
                       {
                         <Container
+                          cursor="pointer"
+                          onClick={() => (window.location.href = "/import")}
+                          transformTranslateZ={36}
                           {...{
                             backgroundOpacity: 1,
                             borderRadius: 8,
                             flexGrow: 1,
                             alignSelf: "stretch",
                             backgroundColor: "rgba(0, 0, 0, 1)",
+                            hover: {
+                              backgroundOpacity: 0.8,
+                              transformTranslateZ: 48,
+                            },
                           }}
                         >
                           {
@@ -609,6 +620,10 @@ export default function Layout() {
                               >
                                 {
                                   <Container
+                                    cursor="pointer"
+                                    onClick={() =>
+                                      (window.location.href = "/import")
+                                    }
                                     key={"Try it out-container"}
                                     {...{
                                       type: "TEXT",
@@ -776,12 +791,19 @@ export default function Layout() {
                     >
                       {
                         <Container
+                          cursor="pointer"
+                          onClick={() => (window.location.href = "/import")}
+                          transformTranslateZ={36}
                           {...{
                             backgroundOpacity: 1,
                             borderRadius: 8,
                             flexGrow: 1,
                             alignSelf: "stretch",
                             backgroundColor: "rgba(0, 0, 0, 1)",
+                            hover: {
+                              backgroundOpacity: 0.8,
+                              transformTranslateZ: 48,
+                            },
                           }}
                         >
                           {
@@ -808,6 +830,10 @@ export default function Layout() {
                               >
                                 {
                                   <Container
+                                    cursor="pointer"
+                                    onClick={() =>
+                                      (window.location.href = "/import")
+                                    }
                                     key={"Try it out-container"}
                                     {...{
                                       type: "TEXT",
@@ -861,42 +887,7 @@ export default function Layout() {
           </Container>
         }
       </Container>
-      <Container
-        key={"Frame 2608029"}
-        {...{
-          type: "FRAME",
-          alignItems: "center",
-          paddingTop: 40,
-          paddingBottom: 40,
-          flexDirection: "column",
-          lg: { flexDirection: "row" },
-          overflow: "hidden",
-          maxWidth: "100%",
-        }}
-        {...{}}
-      >
-        <Image
-          width={320}
-          height={240}
-          src={
-            "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/eff00adf-7e88-4a9e-bae7-824f3dc2d091"
-          }
-        />
-        <Image
-          width={320}
-          height={240}
-          src={
-            "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bb42ab62-217c-4e80-9e7b-1d68d39a1963"
-          }
-        />
-        <Image
-          width={320}
-          height={240}
-          src={
-            "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bb3dafd0-5dfe-4448-990c-de9877c15e3f"
-          }
-        />
-      </Container>
+
       <Container
         {...{
           type: "FRAME",
@@ -1048,15 +1039,42 @@ export default function Layout() {
                                     {...{
                                       fontWeight: 400,
                                       fontSize: 18,
-                                      letterSpacing: 0,
-                                      color: "rgba(255, 255, 255, 1)",
                                       lineHeight: 1.2102272245619032,
+                                      color: "rgba(255, 255, 255, 1)",
+
                                       horizontalAlign: "left",
                                       verticalAlign: "top",
                                     }}
                                   >
-                                    There’s lots of issues, so please jump in to
+                                    There's lots of issues, so please jump in to
                                     help if you can.
+                                  </Text>
+                                  <Text
+                                    {...{
+                                      fontWeight: 400,
+                                      fontSize: 18,
+                                      lineHeight: 1.2102272245619032,
+                                      color: "#fff",
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                      borderBottom: 1,
+                                      borderColor: "#666",
+                                      positionType: "static",
+                                      width: "auto",
+                                      alignSelf: "flex-start",
+                                      cursor: "pointer",
+                                      marginTop: 12,
+                                      hover: {
+                                        borderColor: "#fff",
+                                      },
+                                    }}
+                                    onClick={() =>
+                                      window.open(
+                                        "https://github.com/patrickkeenan/f2r3"
+                                      )
+                                    }
+                                  >
+                                    Checkout the readme
                                   </Text>
                                 </Container>
                               }
@@ -1160,9 +1178,36 @@ export default function Layout() {
                                       verticalAlign: "top",
                                     }}
                                   >
-                                    We’ve got some basic starter templates, but
+                                    We've got some basic starter templates, but
                                     it would be great to have even more
                                     examples.
+                                  </Text>
+                                  <Text
+                                    {...{
+                                      fontWeight: 400,
+                                      fontSize: 18,
+                                      lineHeight: 1.2102272245619032,
+                                      color: "#fff",
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                      borderBottom: 1,
+                                      borderColor: "#666",
+                                      positionType: "static",
+                                      width: "auto",
+                                      alignSelf: "flex-start",
+                                      cursor: "pointer",
+                                      marginTop: 12,
+                                      hover: {
+                                        borderColor: "#fff",
+                                      },
+                                    }}
+                                    onClick={() =>
+                                      window.open(
+                                        "https://www.figma.com/community/file/1358278207724997509/f2r3-starter"
+                                      )
+                                    }
+                                  >
+                                    Get the starter file
                                   </Text>
                                 </Container>
                               }
@@ -1267,7 +1312,34 @@ export default function Layout() {
                                     }}
                                   >
                                     If you use this to make something, let us
-                                    know and we’ll share it.
+                                    know and we'll share it.
+                                  </Text>
+                                  <Text
+                                    {...{
+                                      fontWeight: 400,
+                                      fontSize: 18,
+                                      lineHeight: 1.2102272245619032,
+                                      color: "#fff",
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                      borderBottom: 1,
+                                      borderColor: "#666",
+                                      positionType: "static",
+                                      width: "auto",
+                                      alignSelf: "flex-start",
+                                      cursor: "pointer",
+                                      marginTop: 12,
+                                      hover: {
+                                        borderColor: "#fff",
+                                      },
+                                    }}
+                                    onClick={() =>
+                                      window.open(
+                                        "https://twitter.com/patrickkeenanme"
+                                      )
+                                    }
+                                  >
+                                    Reach out
                                   </Text>
                                 </Container>
                               }
