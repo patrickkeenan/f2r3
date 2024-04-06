@@ -1,239 +1,296 @@
 import {
-  Root,
   Fullscreen,
   Container,
   Text,
   Image,
-  Content,
 } from "@react-three/uikit";
 export default function Layout() {
   return (
-    <Root pixelSize={0.01} sizeX={10.15} sizeY={5.78}>
+    <Fullscreen
+      backgroundColor="white"
+      paddingY={32}
+      gap={4}
+      overflow="scroll"
+      flexDirection="column"
+      alignItems="center"
+    >
+      <Image
+        width={103}
+        src={
+          "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/0b6757a3-0ee3-48ec-ab4c-579a6d7e70e0"
+        }
+        borderRadius={0}
+      />
       <Container
-        {...{
-          borderRadius: 40,
-          type: "FRAME",
-          overflow: "hidden",
-          width: "100%",
-          height: "100%",
-        }}
+        gap={36}
+        positionType="static"
+        flexShrink={0}
+        alignItems="flex-start"
+        maxWidth="100%"
+        overflow="hidden"
       >
         {
           <Container
+            key={"Features"}
             {...{
-              backgroundOpacity: 1,
-              borderRadius: 40,
-              flexGrow: 1,
+              type: "FRAME",
+              gap: 128,
+              justifyContent: "space-between",
+              alignContent: "stretch",
               alignSelf: "stretch",
-              backgroundColor: "rgba(255, 255, 255, 1)",
+              paddingTop: 44,
+              paddingBottom: 44,
+              flexDirection: "column",
+              alignItems: "center",
             }}
+            {...{}}
           >
-            {
+            <Container
+              key={"Frame 5"}
+              {...{
+                maxWidth: 1200,
+                type: "FRAME",
+                gap: 100,
+                paddingX: 32,
+                flexDirection: "column",
+                lg: { flexDirection: "row" },
+                alignItems: "center",
+              }}
+              {...{}}
+            >
               <Container
-                key={"Header"}
+                {...{
+                  maxWidth: 500,
+                  gap: 32,
+                }}
+              >
+                {
+                  <Container
+                    key={"PKBlurb"}
+                    {...{
+                      type: "FRAME",
+                      gap: 32,
+                      alignSelf: "stretch",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                    }}
+                    {...{}}
+                  >
+                    <Container
+                      {...{
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={"PROTOTYPING IN THREE DIMENSIONS-container"}
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={"PROTOTYPING IN THREE DIMENSIONS-text"}
+                            {...{
+                              fontWeight: 700,
+                              fontSize: 14,
+                              letterSpacing: 1,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.2102272851126534,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            PROTOTYPING IN THREE DIMENSIONS
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        type: "TEXT",
+                        positionType: "static",
+                        flexGrow: 1,
+                        flexShrink: 1,
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={"From canvas to world in a click-container"}
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={"From canvas to world in a click-text"}
+                            {...{
+                              fontWeight: 600,
+                              fontSize: 64,
+                              letterSpacing: 0,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.0625,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            From canvas to world in a click
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        type: "TEXT",
+                        positionType: "static",
+                        flexGrow: 1,
+                        flexShrink: 1,
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={
+                            "F2R3 makes it easy to see your Figma UI in 3D. You can preview it in the browser, headset, and then take the code and build out your full experience. Leveraging @react-three/uikit, you can build out fully interactive and very fast interactions.-container"
+                          }
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={
+                              "F2R3 makes it easy to see your Figma UI in 3D. You can preview it in the browser, headset, and then take the code and build out your full experience. Leveraging @react-three/uikit, you can build out fully interactive and very fast interactions.-text"
+                            }
+                            {...{
+                              fontWeight: 500,
+                              fontSize: 18,
+                              letterSpacing: 0,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.2102272245619032,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            F2R3 makes it easy to see your Figma UI in 3D. You
+                            can preview it in the browser, headset, and then
+                            take the code and build out your full experience.
+                            Leveraging @react-three/uikit, you can build out
+                            fully interactive and very fast interactions.
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        borderRadius: 8,
+                        type: "FRAME",
+                        gap: 4,
+                        overflow: "hidden",
+                        positionType: "static",
+                        alignItems: "flex-start",
+                        height: 75,
+                      }}
+                    >
+                      {
+                        <Container
+                          {...{
+                            backgroundOpacity: 1,
+                            borderRadius: 8,
+                            flexGrow: 1,
+                            alignSelf: "stretch",
+                            backgroundColor: "rgba(0, 0, 0, 1)",
+                          }}
+                        >
+                          {
+                            <Container
+                              key={"TryButton"}
+                              {...{
+                                type: "FRAME",
+                                gap: 4,
+                                paddingTop: 18,
+                                paddingBottom: 18,
+                                paddingLeft: 32,
+                                paddingRight: 32,
+                                flexDirection: "row",
+                                justifyContent: "center",
+                              }}
+                              {...{}}
+                            >
+                              <Container
+                                {...{
+                                  type: "TEXT",
+                                  positionType: "static",
+                                  alignItems: "flex-start",
+                                }}
+                              >
+                                {
+                                  <Container
+                                    key={"Try it out-container"}
+                                    {...{
+                                      type: "TEXT",
+                                    }}
+                                  >
+                                    <Text
+                                      key={"Try it out-text"}
+                                      {...{
+                                        fontWeight: 600,
+                                        fontSize: 32,
+                                        letterSpacing: 0,
+                                        color: "rgba(255, 255, 255, 1)",
+                                        lineHeight: 1.2102272510528564,
+                                        horizontalAlign: "left",
+                                        verticalAlign: "top",
+                                      }}
+                                    >
+                                      Try it out
+                                    </Text>
+                                  </Container>
+                                }
+                              </Container>
+                            </Container>
+                          }
+                        </Container>
+                      }
+                    </Container>
+                  </Container>
+                }
+              </Container>
+              <Container
                 {...{
                   type: "FRAME",
-                  positionTop: 0,
-                  positionLeft: 0,
-                  positionRight: 0,
-                  positionBottom: 0,
-                  positionType: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  overflow: "scroll",
-                  flexWrap: "no-wrap",
+                  gap: 4,
+                  transformTranslateZ: 80,
+                  transformTranslateX: 0,
+                  positionType: "static",
+                  width: 476,
+                  height: 476,
                 }}
-                {...{}}
               >
                 <Container
                   {...{
                     type: "FRAME",
-                    x: -5138,
-                    y: 4483,
-                    width: 103,
-                    height: 44,
-                    positionType: "absolute",
-                    positionTop: 48,
-                    positionLeft: "44.926108374384235%",
-                  }}
-                >
-                  {
-                    <Image
-                      src={
-                        "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/992e15f4-9e71-4aca-965d-dc8959398456"
-                      }
-                      borderRadius={0}
-                    />
-                  }
-                </Container>
-                <Container
-                  {...{
-                    type: "FRAME",
-                    minWidth: 350,
-                    maxWidth: 500,
-                    gap: 24,
-                    x: -5514,
-                    y: 4611,
-                    width: 452,
-                    height: 301,
-                    positionType: "absolute",
-                    positionTop: 176,
-                    positionLeft: "7.8817733990147785%",
-                  }}
-                >
-                  {
-                    <Container
-                      key={"PKBlurb"}
-                      {...{
-                        type: "FRAME",
-                        gap: 24,
-                        flexDirection: "column",
-                        flexWrap: "no-wrap",
-                        justifyContent: "center",
-                      }}
-                      {...{}}
-                    >
-                      <Container
-                        {...{
-                          type: "TEXT",
-                          positionType: "static",
-                          flexGrow: 1,
-                          flexShrink: 1,
-                          alignSelf: "stretch",
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        {
-                          <Container
-                            key={"PROTOTYPING IN THREE DIMENSIONS-container"}
-                            {...{
-                              type: "TEXT",
-                              justifyContent: "space-between",
-                              alignContent: "stretch",
-                              alignSelf: "stretch",
-                              flexWrap: "no-wrap",
-                            }}
-                          >
-                            <Text
-                              key={"PROTOTYPING IN THREE DIMENSIONS-text"}
-                              {...{
-                                fontWeight: 700,
-                                fontSize: 14,
-                                letterSpacing: 1,
-                                color: "rgba(0, 0, 0, 1)",
-                                lineHeight: 1.2102272851126534,
-                                horizontalAlign: "left",
-                                verticalAlign: "top",
-                              }}
-                            >
-                              PROTOTYPING IN THREE DIMENSIONS
-                            </Text>
-                          </Container>
-                        }
-                      </Container>
-                      <Container
-                        {...{
-                          type: "TEXT",
-                          positionType: "static",
-                          flexGrow: 1,
-                          flexShrink: 1,
-                          alignSelf: "stretch",
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        {
-                          <Container
-                            key={"From canvas to world in a click-container"}
-                            {...{
-                              type: "TEXT",
-                              justifyContent: "space-between",
-                              alignContent: "stretch",
-                              alignSelf: "stretch",
-                              flexWrap: "no-wrap",
-                            }}
-                          >
-                            <Text
-                              key={"From canvas to world in a click-text"}
-                              {...{
-                                fontWeight: 600,
-                                fontSize: 52,
-                                letterSpacing: 0,
-                                color: "rgba(0, 0, 0, 1)",
-                                lineHeight: 1.2102272327129657,
-                                horizontalAlign: "left",
-                                verticalAlign: "top",
-                              }}
-                            >
-                              From canvas to world in a click
-                            </Text>
-                          </Container>
-                        }
-                      </Container>
-                      <Container
-                        {...{
-                          type: "TEXT",
-                          positionType: "static",
-                          flexGrow: 1,
-                          flexShrink: 1,
-                          alignSelf: "stretch",
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        {
-                          <Container
-                            key={
-                              "F2R3 makes it easy to see your Figma UI in 3D. You can preview it in the browser, headset, and then take the code and build out your full experience. Leveraging @react-three/uikit, you can build out fully interactive and very fast interactions.-container"
-                            }
-                            {...{
-                              type: "TEXT",
-                              justifyContent: "space-between",
-                              alignContent: "stretch",
-                              alignSelf: "stretch",
-                              flexWrap: "no-wrap",
-                            }}
-                          >
-                            <Text
-                              key={
-                                "F2R3 makes it easy to see your Figma UI in 3D. You can preview it in the browser, headset, and then take the code and build out your full experience. Leveraging @react-three/uikit, you can build out fully interactive and very fast interactions.-text"
-                              }
-                              {...{
-                                fontWeight: 500,
-                                fontSize: 18,
-                                letterSpacing: 0,
-                                color: "rgba(0, 0, 0, 1)",
-                                lineHeight: 1.2102272245619032,
-                                horizontalAlign: "left",
-                                verticalAlign: "top",
-                              }}
-                            >
-                              F2R3 makes it easy to see your Figma UI in 3D. You
-                              can preview it in the browser, headset, and then
-                              take the code and build out your full experience.
-                              Leveraging @react-three/uikit, you can build out
-                              fully interactive and very fast interactions.
-                            </Text>
-                          </Container>
-                        }
-                      </Container>
-                    </Container>
-                  }
-                </Container>
-                <Container
-                  {...{
-                    type: "FRAME",
-                    x: -5001,
-                    y: 4557,
-                    width: 418,
-                    height: 418,
-                    positionType: "absolute",
-                    positionTop: 122,
-                    positionLeft: "58.423645320197046%",
+                    positionType: "static",
+                    width: 550,
+                    height: 550,
                   }}
                 >
                   {
                     <Container
                       key={"Frame 7"}
-                      {...{ type: "FRAME", flexWrap: "no-wrap" }}
+                      {...{
+                        type: "FRAME",
+                      }}
                       {...{}}
                     >
                       <Container
@@ -243,19 +300,19 @@ export default function Layout() {
                           borderBottomRightRadius: 0,
                           borderBottomLeftRadius: 0,
                           type: "VECTOR",
-                          x: -4826.580154418945,
-                          y: 4645.16015625,
-                          width: 69.91999816894531,
-                          height: 51.29999923706055,
+                          x: -3190,
+                          y: 3827,
+                          width: 92,
+                          height: 67.5,
                           positionType: "absolute",
-                          positionTop: 88.16015625,
-                          positionLeft: "41.727235784941314%",
+                          positionTop: 116,
+                          positionLeft: "41.72727272727273%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/48326255-369b-4372-abde-80f0fef52459"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/afca7ae4-5d44-4358-8751-9709fc937baf"
                             }
                             borderRadius={0}
                           />
@@ -264,19 +321,19 @@ export default function Layout() {
                       <Container
                         {...{
                           type: "FRAME",
-                          x: -4972.5,
-                          y: 4752.31982421875,
-                          width: 131.47999572753906,
-                          height: 133.75999450683594,
+                          x: -3382,
+                          y: 3968,
+                          width: 173,
+                          height: 176,
                           positionType: "absolute",
-                          positionTop: 195.31982421875,
+                          positionTop: 257,
                           positionLeft: "6.8181818181818175%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a7f22cdb-ddc7-4767-adc8-b35770a600b3"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a5bb5751-4e2a-40f6-ac6e-85ee5be1e92d"
                             }
                             borderRadius={0}
                           />
@@ -285,19 +342,19 @@ export default function Layout() {
                       <Container
                         {...{
                           type: "FRAME",
-                          x: -4973.259765625,
-                          y: 4585.1201171875,
-                          width: 154.27999877929688,
-                          height: 133.75999450683594,
+                          x: -3383,
+                          y: 3748,
+                          width: 203,
+                          height: 176,
                           positionType: "absolute",
-                          positionTop: 28.1201171875,
-                          positionLeft: "6.636419706937799%",
+                          positionTop: 37,
+                          positionLeft: "6.636363636363636%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3e802cef-459b-4a07-a767-a3a06d88156a"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/70a3f55f-6d7a-48da-931a-908c72772f88"
                             }
                             borderRadius={0}
                           />
@@ -306,21 +363,19 @@ export default function Layout() {
                       <Container
                         {...{
                           type: "FRAME",
-                          transformTranslateZ: 40,
-                          transformTranslateX: 0,
-                          x: -4765.02001953125,
-                          y: 4621.60009765625,
-                          width: 132.24000549316406,
-                          height: 133.75999450683594,
+                          x: -3109,
+                          y: 3796,
+                          width: 174,
+                          height: 176,
                           positionType: "absolute",
-                          positionTop: 64.60009765625,
-                          positionLeft: "56.45454078199761%",
+                          positionTop: 85,
+                          positionLeft: "56.45454545454546%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/2953d0a6-cb11-408a-b4fb-f35490e73fc9"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1acfe6a2-f25d-4be4-9abd-0de827ead75b"
                             }
                             borderRadius={0}
                           />
@@ -329,21 +384,19 @@ export default function Layout() {
                       <Container
                         {...{
                           type: "FRAME",
-                          transformTranslateZ: 40,
-                          transformTranslateX: 0,
-                          x: -4801.1201171875,
-                          y: 4774.35986328125,
-                          width: 143.63999938964844,
-                          height: 165.67999267578125,
+                          x: -3156.5,
+                          y: 3997,
+                          width: 189,
+                          height: 218,
                           positionType: "absolute",
-                          positionTop: 217.35986328125,
-                          positionLeft: "47.81815378289473%",
+                          positionTop: 286,
+                          positionLeft: "47.81818181818182%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d2a760bc-92a9-4279-8442-ee008a82b39d"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bde061be-939a-4acf-9274-f093b1902189"
                             }
                             borderRadius={0}
                           />
@@ -356,22 +409,872 @@ export default function Layout() {
                           borderBottomRightRadius: 0,
                           borderBottomLeftRadius: 0,
                           type: "VECTOR",
-                          x: -4847.85986328125,
-                          y: 4807.7998046875,
-                          width: 47.5,
-                          height: 51.68000030517578,
+                          x: -3218,
+                          y: 4041,
+                          width: 62.5,
+                          height: 68,
                           positionType: "absolute",
-                          positionTop: 250.7998046875,
-                          positionLeft: "36.636396344198566%",
+                          positionTop: 330,
+                          positionLeft: "36.63636363636364%",
                         }}
                       >
                         {
                           <Image
                             src={
-                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c6cbda83-992f-4e71-8487-3bde6ce83e53"
+                              "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6c9baa10-8e69-49bb-b8e3-5d581529d31b"
                             }
                             borderRadius={0}
                           />
+                        }
+                      </Container>
+                    </Container>
+                  }
+                </Container>
+              </Container>
+            </Container>
+            <Container
+              {...{
+                type: "FRAME",
+                maxWidth: 1200,
+                gap: 100,
+                paddingX: 32,
+                positionType: "static",
+                flexGrow: 1,
+                flexShrink: 1,
+                alignSelf: "stretch",
+                flexDirection: "column-reverse",
+                lg: { flexDirection: "row" },
+                alignItems: "center",
+              }}
+            >
+              <Container
+                {...{
+                  type: "FRAME",
+                  transformTranslateZ: 80,
+                  transformTranslateX: 0,
+                  positionType: "static",
+                  width: 476,
+                  height: 476,
+                }}
+              >
+                {
+                  <Image
+                    src={
+                      "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d347dfb3-909f-4249-8b82-5ded7578b069"
+                    }
+                    borderRadius={0}
+                  />
+                }
+              </Container>
+              <Container
+                {...{
+                  type: "FRAME",
+                  maxWidth: 500,
+                  gap: 32,
+                  positionType: "static",
+                  flexGrow: 1,
+                  flexShrink: 1,
+                }}
+              >
+                {
+                  <Container
+                    key={"PKBlurb"}
+                    {...{
+                      type: "FRAME",
+                      gap: 32,
+                      alignSelf: "stretch",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                    }}
+                    {...{}}
+                  >
+                    <Container
+                      {...{
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={"Copy & Paste-container"}
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={"Copy & Paste-text"}
+                            {...{
+                              fontWeight: 600,
+                              fontSize: 64,
+                              letterSpacing: 0,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.0625,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            Copy & Paste
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        type: "TEXT",
+                        positionType: "static",
+                        flexGrow: 1,
+                        flexShrink: 1,
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={
+                            "You can take any composition in figma and copy the frame link. Then, go to the import page, paste it in. This will import your layout, images, and even prototype links. You’ll be able to view the layout in 2D, 3D, in or in WebXR.-container"
+                          }
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={
+                              "You can take any composition in figma and copy the frame link. Then, go to the import page, paste it in. This will import your layout, images, and even prototype links. You’ll be able to view the layout in 2D, 3D, in or in WebXR.-text"
+                            }
+                            {...{
+                              fontWeight: 500,
+                              fontSize: 18,
+                              letterSpacing: 0,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.2102272245619032,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            You can take any composition in figma and copy the
+                            frame link. Then, go to the import page, paste it
+                            in. This will import your layout, images, and even
+                            prototype links. You’ll be able to view the layout
+                            in 2D, 3D, in or in WebXR.
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        borderRadius: 8,
+                        type: "FRAME",
+                        gap: 4,
+                        overflow: "hidden",
+                        positionType: "static",
+                        alignItems: "flex-start",
+                        height: 75,
+                      }}
+                    >
+                      {
+                        <Container
+                          {...{
+                            backgroundOpacity: 1,
+                            borderRadius: 8,
+                            flexGrow: 1,
+                            alignSelf: "stretch",
+                            backgroundColor: "rgba(0, 0, 0, 1)",
+                          }}
+                        >
+                          {
+                            <Container
+                              key={"TryButton"}
+                              {...{
+                                type: "FRAME",
+                                gap: 4,
+                                paddingTop: 18,
+                                paddingBottom: 18,
+                                paddingLeft: 32,
+                                paddingRight: 32,
+                                flexDirection: "row",
+                                justifyContent: "center",
+                              }}
+                              {...{}}
+                            >
+                              <Container
+                                {...{
+                                  type: "TEXT",
+                                  positionType: "static",
+                                  alignItems: "flex-start",
+                                }}
+                              >
+                                {
+                                  <Container
+                                    key={"Try it out-container"}
+                                    {...{
+                                      type: "TEXT",
+                                    }}
+                                  >
+                                    <Text
+                                      key={"Try it out-text"}
+                                      {...{
+                                        fontWeight: 600,
+                                        fontSize: 32,
+                                        letterSpacing: 0,
+                                        color: "rgba(255, 255, 255, 1)",
+                                        lineHeight: 1.2102272510528564,
+                                        horizontalAlign: "left",
+                                        verticalAlign: "top",
+                                      }}
+                                    >
+                                      Try it out
+                                    </Text>
+                                  </Container>
+                                }
+                              </Container>
+                            </Container>
+                          }
+                        </Container>
+                      }
+                    </Container>
+                  </Container>
+                }
+              </Container>
+            </Container>
+            <Container
+              key={"Frame 7"}
+              {...{
+                type: "FRAME",
+                gap: 100,
+                maxWidth: 1200,
+                justifyContent: "center",
+                alignContent: "stretch",
+                alignSelf: "stretch",
+                paddingLeft: 36,
+                paddingRight: 36,
+                flexDirection: "column",
+                alignItems: "center",
+                lg: { flexDirection: "row" },
+              }}
+              {...{}}
+            >
+              <Container
+                {...{
+                  type: "FRAME",
+                  maxWidth: 500,
+                  gap: 32,
+                  positionType: "static",
+                  flexGrow: 1,
+                  flexShrink: 1,
+                  alignSelf: "stretch",
+                  alignItems: "flex-start",
+                }}
+              >
+                {
+                  <Container
+                    key={"PKBlurb"}
+                    {...{
+                      type: "FRAME",
+                      gap: 32,
+                      alignSelf: "stretch",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                    }}
+                    {...{}}
+                  >
+                    <Container
+                      {...{
+                        type: "TEXT",
+                        positionType: "static",
+                        flexGrow: 1,
+                        flexShrink: 1,
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={"Export TSX to do even more-container"}
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={"Export TSX to do even more-text"}
+                            {...{
+                              fontWeight: 600,
+                              fontSize: 64,
+                              letterSpacing: 0,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.0625,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            Export TSX to do even more
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        type: "TEXT",
+                        positionType: "static",
+                        flexGrow: 1,
+                        flexShrink: 1,
+                        alignSelf: "stretch",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      {
+                        <Container
+                          key={
+                            "All the layout is composed with react three fiber and uikit. This means you can copy this code and paste it into your react app. There’s a ton of plug-ins and libraries that can help you on your way.-container"
+                          }
+                          {...{
+                            type: "TEXT",
+                            justifyContent: "space-between",
+                            alignContent: "stretch",
+                            alignSelf: "stretch",
+                          }}
+                        >
+                          <Text
+                            key={
+                              "All the layout is composed with react three fiber and uikit. This means you can copy this code and paste it into your react app. There’s a ton of plug-ins and libraries that can help you on your way.-text"
+                            }
+                            {...{
+                              fontWeight: 500,
+                              fontSize: 18,
+                              letterSpacing: 0,
+                              color: "rgba(0, 0, 0, 1)",
+                              lineHeight: 1.2102272245619032,
+                              horizontalAlign: "left",
+                              verticalAlign: "top",
+                            }}
+                          >
+                            All the layout is composed with react three fiber
+                            and uikit. This means you can copy this code and
+                            paste it into your react app. There’s a ton of
+                            plug-ins and libraries that can help you on your
+                            way.
+                          </Text>
+                        </Container>
+                      }
+                    </Container>
+                    <Container
+                      {...{
+                        borderRadius: 8,
+                        type: "FRAME",
+                        gap: 4,
+                        overflow: "hidden",
+                        positionType: "static",
+                        alignItems: "flex-start",
+                        height: 75,
+                      }}
+                    >
+                      {
+                        <Container
+                          {...{
+                            backgroundOpacity: 1,
+                            borderRadius: 8,
+                            flexGrow: 1,
+                            alignSelf: "stretch",
+                            backgroundColor: "rgba(0, 0, 0, 1)",
+                          }}
+                        >
+                          {
+                            <Container
+                              key={"TryButton"}
+                              {...{
+                                type: "FRAME",
+                                gap: 4,
+                                paddingTop: 18,
+                                paddingBottom: 18,
+                                paddingLeft: 32,
+                                paddingRight: 32,
+                                flexDirection: "row",
+                                justifyContent: "center",
+                              }}
+                              {...{}}
+                            >
+                              <Container
+                                {...{
+                                  type: "TEXT",
+                                  positionType: "static",
+                                  alignItems: "flex-start",
+                                }}
+                              >
+                                {
+                                  <Container
+                                    key={"Try it out-container"}
+                                    {...{
+                                      type: "TEXT",
+                                    }}
+                                  >
+                                    <Text
+                                      key={"Try it out-text"}
+                                      {...{
+                                        fontWeight: 600,
+                                        fontSize: 32,
+                                        letterSpacing: 0,
+                                        color: "rgba(255, 255, 255, 1)",
+                                        lineHeight: 1.2102272510528564,
+                                        horizontalAlign: "left",
+                                        verticalAlign: "top",
+                                      }}
+                                    >
+                                      Try it out
+                                    </Text>
+                                  </Container>
+                                }
+                              </Container>
+                            </Container>
+                          }
+                        </Container>
+                      }
+                    </Container>
+                  </Container>
+                }
+              </Container>
+              <Container
+                {...{
+                  type: "FRAME",
+                  transformTranslateZ: 80,
+                  transformTranslateX: 0,
+                  positionType: "static",
+                  width: 476,
+                  height: 476,
+                }}
+              >
+                {
+                  <Image
+                    src={
+                      "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6b9d8cb9-2895-437c-8a6d-a13708b743cf"
+                    }
+                    borderRadius={0}
+                  />
+                }
+              </Container>
+            </Container>
+          </Container>
+        }
+      </Container>
+      <Container
+        key={"Frame 2608029"}
+        {...{
+          type: "FRAME",
+          alignItems: "center",
+          paddingTop: 40,
+          paddingBottom: 40,
+          flexDirection: "column",
+          lg: { flexDirection: "row" },
+          overflow: "hidden",
+          maxWidth: "100%",
+        }}
+        {...{}}
+      >
+        <Image
+          width={320}
+          height={240}
+          src={
+            "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/eff00adf-7e88-4a9e-bae7-824f3dc2d091"
+          }
+        />
+        <Image
+          width={320}
+          height={240}
+          src={
+            "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bb42ab62-217c-4e80-9e7b-1d68d39a1963"
+          }
+        />
+        <Image
+          width={320}
+          height={240}
+          src={
+            "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bb3dafd0-5dfe-4448-990c-de9877c15e3f"
+          }
+        />
+      </Container>
+      <Container
+        {...{
+          type: "FRAME",
+          overflow: "hidden",
+          positionType: "static",
+          flexGrow: 1,
+          flexShrink: 0,
+          maxWidth: "100%",
+          alignSelf: "stretch",
+          alignItems: "flex-start",
+        }}
+      >
+        {
+          <Container
+            {...{
+              backgroundOpacity: 1,
+              flexGrow: 1,
+              alignSelf: "stretch",
+              backgroundColor: "rgba(30, 30, 30, 1)",
+            }}
+          >
+            {
+              <Container
+                key={"Frame 2608030"}
+                {...{
+                  type: "FRAME",
+                  justifyContent: "center",
+                  alignContent: "stretch",
+                  alignSelf: "stretch",
+                  paddingTop: 64,
+                  paddingBottom: 128,
+                  paddingLeft: 20,
+                  paddingRight: 20,
+                  flexDirection: "row",
+                }}
+                {...{}}
+              >
+                <Container
+                  {...{
+                    type: "FRAME",
+                    gap: 80,
+                    positionType: "static",
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    alignSelf: "stretch",
+                    alignItems: "flex-start",
+                    paddingX: 32,
+                  }}
+                >
+                  {
+                    <Container
+                      key={"Frame 2608031"}
+                      {...{
+                        type: "FRAME",
+                        gap: 80,
+                        alignSelf: "stretch",
+                        flexDirection: "column",
+                        lg: { flexDirection: "row" },
+                        justifyContent: "center",
+                      }}
+                      {...{}}
+                    >
+                      <Container
+                        {...{
+                          type: "FRAME",
+                          maxWidth: 500,
+                          gap: 8,
+                          positionType: "static",
+                          flexGrow: 1,
+                          flexShrink: 1,
+                          alignSelf: "stretch",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        {
+                          <Container
+                            key={"PKBlurb"}
+                            {...{
+                              type: "FRAME",
+                              gap: 8,
+                              alignSelf: "stretch",
+                              flexDirection: "column",
+                            }}
+                            {...{}}
+                          >
+                            <Container
+                              {...{
+                                type: "TEXT",
+                                positionType: "static",
+                                flexGrow: 1,
+                                flexShrink: 1,
+                                alignSelf: "stretch",
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              {
+                                <Container
+                                  key={"Contribute on Github-container"}
+                                  {...{
+                                    type: "TEXT",
+                                    justifyContent: "space-between",
+                                    alignContent: "stretch",
+                                    alignSelf: "stretch",
+                                  }}
+                                >
+                                  <Text
+                                    key={"Contribute on Github-text"}
+                                    {...{
+                                      fontWeight: 700,
+                                      fontSize: 16,
+                                      letterSpacing: 0,
+                                      color: "rgba(255, 255, 255, 1)",
+                                      lineHeight: 1.2102272510528564,
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                    }}
+                                  >
+                                    Contribute on Github
+                                  </Text>
+                                </Container>
+                              }
+                            </Container>
+                            <Container
+                              {...{
+                                type: "TEXT",
+                                positionType: "static",
+                                flexGrow: 1,
+                                flexShrink: 1,
+                                alignSelf: "stretch",
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              {
+                                <Container
+                                  key={
+                                    "There’s lots of issues, so please jump in to help if you can.-container"
+                                  }
+                                  {...{
+                                    type: "TEXT",
+                                    justifyContent: "space-between",
+                                    alignContent: "stretch",
+                                    alignSelf: "stretch",
+                                  }}
+                                >
+                                  <Text
+                                    key={
+                                      "There’s lots of issues, so please jump in to help if you can.-text"
+                                    }
+                                    {...{
+                                      fontWeight: 400,
+                                      fontSize: 18,
+                                      letterSpacing: 0,
+                                      color: "rgba(255, 255, 255, 1)",
+                                      lineHeight: 1.2102272245619032,
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                    }}
+                                  >
+                                    There’s lots of issues, so please jump in to
+                                    help if you can.
+                                  </Text>
+                                </Container>
+                              }
+                            </Container>
+                          </Container>
+                        }
+                      </Container>
+                      <Container
+                        {...{
+                          type: "FRAME",
+                          maxWidth: 500,
+                          gap: 8,
+                          positionType: "static",
+                          flexGrow: 1,
+                          flexShrink: 1,
+                          alignSelf: "stretch",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        {
+                          <Container
+                            key={"PKBlurb"}
+                            {...{
+                              type: "FRAME",
+                              gap: 8,
+                              alignSelf: "stretch",
+                              flexDirection: "column",
+                            }}
+                            {...{}}
+                          >
+                            <Container
+                              {...{
+                                type: "TEXT",
+                                positionType: "static",
+                                flexGrow: 1,
+                                flexShrink: 1,
+                                alignSelf: "stretch",
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              {
+                                <Container
+                                  key={"Contribute in Figma-container"}
+                                  {...{
+                                    type: "TEXT",
+                                    justifyContent: "space-between",
+                                    alignContent: "stretch",
+                                    alignSelf: "stretch",
+                                  }}
+                                >
+                                  <Text
+                                    key={"Contribute in Figma-text"}
+                                    {...{
+                                      fontWeight: 700,
+                                      fontSize: 16,
+                                      letterSpacing: 0,
+                                      color: "rgba(255, 255, 255, 1)",
+                                      lineHeight: 1.2102272510528564,
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                    }}
+                                  >
+                                    Contribute in Figma
+                                  </Text>
+                                </Container>
+                              }
+                            </Container>
+                            <Container
+                              {...{
+                                type: "TEXT",
+                                positionType: "static",
+                                flexGrow: 1,
+                                flexShrink: 1,
+                                alignSelf: "stretch",
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              {
+                                <Container
+                                  key={
+                                    "We’ve got some basic starter templates, but it would be great to have even more examples.-container"
+                                  }
+                                  {...{
+                                    type: "TEXT",
+                                    justifyContent: "space-between",
+                                    alignContent: "stretch",
+                                    alignSelf: "stretch",
+                                  }}
+                                >
+                                  <Text
+                                    key={
+                                      "We’ve got some basic starter templates, but it would be great to have even more examples.-text"
+                                    }
+                                    {...{
+                                      fontWeight: 400,
+                                      fontSize: 18,
+                                      letterSpacing: 0,
+                                      color: "rgba(255, 255, 255, 1)",
+                                      lineHeight: 1.2102272245619032,
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                    }}
+                                  >
+                                    We’ve got some basic starter templates, but
+                                    it would be great to have even more
+                                    examples.
+                                  </Text>
+                                </Container>
+                              }
+                            </Container>
+                          </Container>
+                        }
+                      </Container>
+                      <Container
+                        {...{
+                          type: "FRAME",
+                          maxWidth: 500,
+                          gap: 8,
+                          positionType: "static",
+                          flexGrow: 1,
+                          flexShrink: 1,
+                          alignSelf: "stretch",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        {
+                          <Container
+                            key={"PKBlurb"}
+                            {...{
+                              type: "FRAME",
+                              gap: 8,
+                              alignSelf: "stretch",
+                              flexDirection: "column",
+                            }}
+                            {...{}}
+                          >
+                            <Container
+                              {...{
+                                type: "TEXT",
+                                positionType: "static",
+                                flexGrow: 1,
+                                flexShrink: 1,
+                                alignSelf: "stretch",
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              {
+                                <Container
+                                  key={"Let us know-container"}
+                                  {...{
+                                    type: "TEXT",
+                                    justifyContent: "space-between",
+                                    alignContent: "stretch",
+                                    alignSelf: "stretch",
+                                  }}
+                                >
+                                  <Text
+                                    key={"Let us know-text"}
+                                    {...{
+                                      fontWeight: 700,
+                                      fontSize: 16,
+                                      letterSpacing: 0,
+                                      color: "rgba(255, 255, 255, 1)",
+                                      lineHeight: 1.2102272510528564,
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                    }}
+                                  >
+                                    Let us know
+                                  </Text>
+                                </Container>
+                              }
+                            </Container>
+                            <Container
+                              {...{
+                                type: "TEXT",
+                                positionType: "static",
+                                flexGrow: 1,
+                                flexShrink: 1,
+                                alignSelf: "stretch",
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              {
+                                <Container
+                                  key={
+                                    "If you use this to make something, let us know and we’ll share it.-container"
+                                  }
+                                  {...{
+                                    type: "TEXT",
+                                    justifyContent: "space-between",
+                                    alignContent: "stretch",
+                                    alignSelf: "stretch",
+                                  }}
+                                >
+                                  <Text
+                                    key={
+                                      "If you use this to make something, let us know and we’ll share it.-text"
+                                    }
+                                    {...{
+                                      fontWeight: 400,
+                                      fontSize: 18,
+                                      letterSpacing: 0,
+                                      color: "rgba(255, 255, 255, 1)",
+                                      lineHeight: 1.2102272245619032,
+                                      horizontalAlign: "left",
+                                      verticalAlign: "top",
+                                    }}
+                                  >
+                                    If you use this to make something, let us
+                                    know and we’ll share it.
+                                  </Text>
+                                </Container>
+                              }
+                            </Container>
+                          </Container>
                         }
                       </Container>
                     </Container>
@@ -382,6 +1285,6 @@ export default function Layout() {
           </Container>
         }
       </Container>
-    </Root>
+    </Fullscreen>
   );
 }

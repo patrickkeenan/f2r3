@@ -39,6 +39,17 @@ import {
 import { useFigmaContext } from "@/app/auth/figmaTokenContext";
 import { useEnterXR } from "@coconut-xr/natuerlich/react";
 
+const sessionOptions: XRSessionInit = {
+  optionalFeatures: [
+    "hit-test",
+    "plane-detection",
+    "anchors",
+    "hand-tracking",
+    // "layers",
+  ],
+  requiredFeatures: ["local-floor"],
+};
+
 export default function UI({
   onSwitch = (fullscreen) => {},
   onNavigate = (increment) => {},
@@ -51,8 +62,7 @@ export default function UI({
   const pathname = usePathname();
   const { token, nodeId, fileId } = useFigmaContext();
 
-  const xrState = useXR.getState();
-  const isAR = xrState.mode === "immersive-ar";
+  const isAR = useXR((s) => s.mode === "immersive-ar");
 
   const [fileName, setFileName] = useState("");
   const [urlValid, setUrlValid] = useState(false);
@@ -160,16 +170,6 @@ export default function UI({
     onSwitch(isFullscreen);
   }, [isFullscreen]);
 
-  const sessionOptions = {
-    requiredFeatures: [
-      "hit-test",
-      "plane-detection",
-      "anchors",
-      "hand-tracking",
-      "local-floor",
-      // "layers",
-    ],
-  };
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
   const [currentXRSession, setCurrentXRSession] = useState(null);
   const [isQuest, setIsQuest] = useState("");
