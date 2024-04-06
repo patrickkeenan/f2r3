@@ -372,11 +372,7 @@ export default function Preview({ ...props }) {
         >
           <ambientLight intensity={0.5} />
           <directionalLight intensity={1} position={[-5, 5, 10]} />
-          {!hasScene && (
-            <>
-              <StarterScene />
-            </>
-          )}
+          {!hasScene && <>{/* <StarterScene /> */}</>}
           <SessionModeGuard allow={"immersive-ar"}>
             <mesh
               position={[0, 0.9, -0.5]}

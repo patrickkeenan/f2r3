@@ -1,9 +1,4 @@
-import {
-  Fullscreen,
-  Container,
-  Text,
-  Image,
-} from "@react-three/uikit";
+import { Fullscreen, Container, Text, Image } from "@react-three/uikit";
 export default function Layout() {
   return (
     <Fullscreen
@@ -236,6 +231,9 @@ export default function Layout() {
                               >
                                 {
                                   <Container
+                                    onClick={() =>
+                                      (window.location.href = "/import")
+                                    }
                                     key={"Try it out-container"}
                                     {...{
                                       type: "TEXT",

@@ -115,7 +115,7 @@ export default function PKCanvas({
         camera={{ position: [0, 0, 10] }}
         frameRate={heighestAvailableFramerate}
         style={{ width: "100vw", height: "100vh" }}
-        {...canvasInputProps}
+        // {...canvasInputProps}
         {...rest}
       >
         <color args={[0]} attach="background" />
