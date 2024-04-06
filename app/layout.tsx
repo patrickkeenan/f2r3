@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Figma > UIKit",
-  description: "An importer",
+  title: "F2R3",
+  description: "Figma to React Three Fiber",
 };
 
 export default function RootLayout({
