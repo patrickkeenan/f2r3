@@ -65,10 +65,6 @@ export default function PKCanvas({
   children?: ReactNode;
   [x: string]: any;
 }) {
-  useEffect(() => {
-    document.title = title;
-  }, [title]);
-
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
   const [devicePixelRatio, setDevicePixelRatio] = useState(1);
   const frameBufferScaling = useNativeFramebufferScaling();
