@@ -28,6 +28,7 @@ import { SessionModeGuard, useXR } from "@coconut-xr/natuerlich/react";
 import { signal } from "@preact/signals-react";
 import StarterScene from "../exports/import-screen/scene";
 import { Grab } from "@react-three/uikit-lucide";
+// import { FigmaLayer } from "@/app/components/FigmaLayer";
 
 // import { staticLayoutData } from "./layoutData";
 
@@ -131,9 +132,10 @@ export default function Preview({ ...props }) {
           setLoadingStatus("Parsing file...");
           jsonData.document = addParentsAndSiblings(jsonData.document);
 
-          const allNodes = jsonData.document;
-
+          const allPages = jsonData.document;
+          const allNodes = findPageByChildId(allPages, nodeId);
           let rootNode = findNodeById(allNodes, nodeId);
+          console.log(rootNode, allNodes, nodeId);
           // console.log(rootNode, allNodes, nodeId, fileId);
           if (rootNode.type == "FRAME") {
             jsonData.rootNodeId = rootNode.id;
@@ -232,8 +234,10 @@ export default function Preview({ ...props }) {
   const fetchLayoutImages = (jsonData, fileId) => {
     let imagesByNodeId = {};
     // for (var i in jsonData.nodes) {
+    const allPages = jsonData.document;
+    const allNodes = findPageByChildId(allPages, jsonData.rootNodeId);
     imagesByNodeId = checkLayerForImages(
-      jsonData.document,
+      allNodes,
       imagesByNodeId,
       jsonData.fileId
     );
@@ -308,9 +312,10 @@ export default function Preview({ ...props }) {
     );
     // console.log(node.name, hasComplexStrokes, hasComplexFills, node.fills);
 
-    if (!FEATURE_TESTS.vectors && node.type == "VECTOR") {
-      imagesByNodeId[node.id] = true;
-    }
+    // if (!FEATURE_TESTS.vectors && node.type == "VECTOR") {
+    //   imagesByNodeId[node.id] = true;
+    //   console.log(node.id, node.type, node.name);
+    // }
 
     if (
       (hasComplexFills || hasComplexStrokes) &&
@@ -318,12 +323,14 @@ export default function Preview({ ...props }) {
     ) {
       // Flatted image if the layer has complex fills or strokes and has no children
       imagesByNodeId[node.id] = true;
+      console.log(node.id, node.type, node.name);
     }
 
     // Manual rasterize
     if (shouldRaster) {
       // Flatted image if the user explicitly wants to
       imagesByNodeId[node.id] = true;
+      console.log(node.id, node.type, node.name);
     }
 
     if (node.children && !shouldRaster) {
@@ -450,6 +457,16 @@ export default function Preview({ ...props }) {
   );
 }
 
+const findPageByChildId = (allNodes, rootId: string) => {
+  for (let i in allNodes.children) {
+    const nodeInPage = findNodeById(allNodes.children[i], rootId);
+    if (nodeInPage) {
+      return allNodes.children[i];
+    }
+  }
+  return null;
+};
+
 const findNodeById = (nodes, id: string) => {
   // Base case: If the current node's id matches the target id, return the node.
   if (nodes.id === id) {
@@ -498,7 +515,9 @@ function Scene({
   // const rootNode = layoutData.nodes[
   //   Object.keys(layoutData.nodes)[0]
   // ].document.children.find((node) => node.id === layoutData.rootNodeId);
-  const allNodes = layoutData.document;
+  // const allNodes = layoutData.document;
+  const allPages = layoutData.document;
+  const allNodes = findPageByChildId(allPages, layoutData.rootNodeId);
   // const rootNode = findNodeById(allNodes, layoutData.rootNodeId);
   // const firstNodeId = (allNodes.type=="CANVAS") ? allNodes.children[0] :layoutData.rootNodeId
   const [rootNode, setRootNode] = useState(
@@ -828,7 +847,10 @@ function FigmaLayer({
         // } else
         if (fill.type == "SOLID") {
           innerComponent = (
-            <Container {...figFillProps(fill, nodeVariant, i)}>
+            <Container
+              key={node.id + "_fill_" + i}
+              {...figFillProps(fill, nodeVariant, i)}
+            >
               {innerComponent}
             </Container>
           );
@@ -1150,7 +1172,7 @@ function figTextProps(node) {
 
 function figFillProps(fill, node, fillIndex) {
   let props: any = {
-    key: node.id + "_fill_" + fillIndex,
+    fillIndex: fillIndex,
     backgroundOpacity: fill.opacity ? fill.opacity : 1,
     ...figCornerRadiusProps(node),
     flexGrow: 1,

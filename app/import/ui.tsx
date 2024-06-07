@@ -111,10 +111,11 @@ export default function UI({
       // console.log(urlObj, urlObj.href.indexOf("https://www.figma.com/file"));
 
       if (
-        (nodeId &&
-          fileId &&
-          urlObj.href.indexOf("https://www.figma.com/file") > -1) ||
-        urlObj.href.indexOf("https://www.figma.com/proto") > -1
+        nodeId &&
+        fileId &&
+        (urlObj.href.indexOf("https://www.figma.com/design") > -1 ||
+          urlObj.href.indexOf("https://www.figma.com/file") > -1 ||
+          urlObj.href.indexOf("https://www.figma.com/proto") > -1)
       ) {
         return {
           valid: true,
